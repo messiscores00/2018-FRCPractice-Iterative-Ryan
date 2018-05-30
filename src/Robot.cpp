@@ -5,7 +5,6 @@
 /* the project.                                                               */
 /*----------------------------------------------------------------------------*/
 
-// THIS IS A TEST
 #include "Robot.h"
 
 #include <iostream>
