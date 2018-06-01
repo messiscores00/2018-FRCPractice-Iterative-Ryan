@@ -15,19 +15,29 @@ Drive::Drive() {
 Drive::~Drive() {
 	// TODO Auto-generated destructor stub
 }
+void Drive::PIDenable(int P, int I, int D, int F){
+	Left_Front.ctre::phoenix::motorcontrol::can::WPI_TalonSRX::Config_kP(0, P, 0);
+	Left_Front.ctre::phoenix::motorcontrol::can::WPI_TalonSRX::Config_kI(0, I, 0);
+	Left_Front.ctre::phoenix::motorcontrol::can::WPI_TalonSRX::Config_kD(0, D, 0);
+	Left_Front.ctre::phoenix::motorcontrol::can::WPI_TalonSRX::Config_kF(0, F, 0);
+	Right_Front.ctre::phoenix::motorcontrol::can::WPI_TalonSRX::Config_kP(0, P, 0);
+	Right_Front.ctre::phoenix::motorcontrol::can::WPI_TalonSRX::Config_kI(0, I, 0);
+	Right_Front.ctre::phoenix::motorcontrol::can::WPI_TalonSRX::Config_kD(0, D, 0);
+	Right_Front.ctre::phoenix::motorcontrol::can::WPI_TalonSRX::Config_kF(0, F, 0);
+}
+
+void Drive::PIDdisable(){
+	Left_Front.ctre::phoenix::motorcontrol::can::WPI_TalonSRX::Config_kP(0, 0, 0);
+	Left_Front.ctre::phoenix::motorcontrol::can::WPI_TalonSRX::Config_kI(0, 0, 0);
+	Left_Front.ctre::phoenix::motorcontrol::can::WPI_TalonSRX::Config_kD(0, 0, 0);
+	Left_Front.ctre::phoenix::motorcontrol::can::WPI_TalonSRX::Config_kF(0, 0, 0);
+	Right_Front.ctre::phoenix::motorcontrol::can::WPI_TalonSRX::Config_kP(0, 0, 0);
+	Right_Front.ctre::phoenix::motorcontrol::can::WPI_TalonSRX::Config_kI(0, 0, 0);
+	Right_Front.ctre::phoenix::motorcontrol::can::WPI_TalonSRX::Config_kD(0, 0, 0);
+	Right_Front.ctre::phoenix::motorcontrol::can::WPI_TalonSRX::Config_kF(0, 0, 0);
+}
 
 void Drive::ArcadeDrive(int deadzone, double sensitivity){
-	if(xbox1.frc::Joystick::GetX(frc::GenericHID::JoystickHand::kRightHand)> deadzone){
-		//Left_Front.ctre::phoenix::motorcontrol::can::WPI_TalonSRX::Set(ctre::phoenix::motorcontrol::ControlMode::Position, )
-	}
-	else{
 
-	}
-	if(xbox1.frc::Joystick::GetY(frc::GenericHID::JoystickHand::kLeftHand)> deadzone){
-
-	}
-	else{
-
-	}
 }
 
