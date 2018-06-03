@@ -12,6 +12,8 @@
 #include <SmartDashboard/SmartDashboard.h>
 
 void Robot::RobotInit() {
+
+
 	m_chooser.AddDefault(kAutoNameDefault, kAutoNameDefault);
 	m_chooser.AddObject(kAutoNameCustom, kAutoNameCustom);
 	frc::SmartDashboard::PutData("Auto Modes", &m_chooser);
@@ -49,9 +51,13 @@ void Robot::AutonomousPeriodic() {
 	}
 }
 
-void Robot::TeleopInit() {}
+void Robot::TeleopInit() {
 
-void Robot::TeleopPeriodic() {}
+}
+
+void Robot::TeleopPeriodic() {
+	drive.ArcadeDrive(.02, 1);
+}
 
 void Robot::TestPeriodic() {}
 

@@ -12,6 +12,7 @@
 #include <IterativeRobot.h>
 #include <SmartDashboard/SendableChooser.h>
 #include <ctre/Phoenix.h>
+#include <Drive.h>
 
 class Robot : public frc::IterativeRobot {
 public:
@@ -22,9 +23,11 @@ public:
 	void TeleopPeriodic() override;
 	void TestPeriodic() override;
 
+
 private:
 	frc::SendableChooser<std::string> m_chooser;
 	const std::string kAutoNameDefault = "Default";
 	const std::string kAutoNameCustom = "My Auto";
 	std::string m_autoSelected;
+	Drive drive{};
 };

@@ -37,7 +37,39 @@ void Drive::PIDdisable(){
 	Right_Front.ctre::phoenix::motorcontrol::can::WPI_TalonSRX::Config_kF(0, 0, 0);
 }
 
-void Drive::ArcadeDrive(int deadzone, double sensitivity){
+void Drive::ArcadeDrive(double deadzone, double sensitivity){
+
+	xbox1.SetXChannel(4);
+	xbox1.SetYChannel(1);
+	double left_right = -1 * sensitivity * xbox1.GetX(frc::GenericHID::JoystickHand::kRightHand);
+	double forw_back  = sensitivity * xbox1.GetY(frc::GenericHID::JoystickHand::kLeftHand);
+
+	if (fabs(left_right) < deadzone)
+		left_right = 0;
+	if (fabs(forw_back) < deadzone)
+		forw_back = 0;
+
+	_diffDrive.ArcadeDrive(forw_back, left_right, false);
 
 }
+
+void Drive::PIDForw(double u, double Dtot, double Vf, double CoW){
+	Dtot = Dtot/CoW * 4096;
+	//Leaner motion equation
+	//s = displacement
+	double s = (u * ((2*Dtot)/(u+Vf)) + (((encoder.frc::Encoder::Get()/(counter.Get()^2))*(4*Dtot))/2));
+
+	if(s > Dtot){
+	}
+}
+
+
+
+
+
+
+
+
+
+
 

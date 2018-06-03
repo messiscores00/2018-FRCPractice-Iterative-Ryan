@@ -10,6 +10,10 @@
 #include <Joystick.h>
 #include <ctre/phoenix.h>
 #include <Drive/DifferentialDrive.h>
+#include <iostream>
+#include <DriverStation.h>
+#include <Counter.h>
+#include <Encoder.h>
 
 class Drive {
 public:
@@ -18,16 +22,20 @@ public:
 	virtual ~Drive();
 	void PIDenable(int P, int I, int D, int F);
 	void PIDdisable();
-	void ArcadeDrive(int deadzone, double sensitivity);
-	//deadzone is between 1 and 10
-		//10 being max
-	//sensitivity = if full forward how far do you want it to travel
+	void ArcadeDrive(double deadzone, double sensitivity);
+	//deadzone between 0 and 1.00
+	//sensitivity between 0 and 1.00
+	void PIDForw(double u, double Dtot, double Vf, double CoW);
+	//u = initial velocity
+	//Dtot = total distance
+	// Vf = final velocity
+	//CoW = circumference of Wheel
 
 	//variables
-	int Left_FrontID = 0;
-	int Right_FrontID = 1;
+	int Left_FrontID = 3;
+	int Right_FrontID = 4;
 	int Left_BackID = 2;
-	int Right_BackID = 3;
+	int Right_BackID = 5;
 
 	//objects
 	ctre::phoenix::motorcontrol::can::WPI_TalonSRX Left_Front{Left_FrontID};
@@ -36,6 +44,8 @@ public:
 	ctre::phoenix::motorcontrol::can::WPI_TalonSRX Right_Back{Right_BackID};
 	frc::Joystick xbox1{0};
 	frc::DifferentialDrive _diffDrive{Left_Front, Right_Front};
+	frc::Counter counter{0};
+	frc::Encoder encoder{0, 1, false, frc::CounterBase::EncodingType::k4X};
 };
 
 #endif /* DRIVE_H_ */
