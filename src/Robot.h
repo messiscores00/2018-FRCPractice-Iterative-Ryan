@@ -8,11 +8,12 @@
 #pragma once
 
 #include <string>
-
 #include <IterativeRobot.h>
 #include <SmartDashboard/SendableChooser.h>
 #include <ctre/Phoenix.h>
 #include <Drive.h>
+#include <iostream>
+#include <SmartDashboard/SmartDashboard.h>
 
 class Robot : public frc::IterativeRobot {
 public:
@@ -25,9 +26,9 @@ public:
 
 
 private:
-	frc::SendableChooser<std::string> m_chooser;
-	const std::string kAutoNameDefault = "Default";
-	const std::string kAutoNameCustom = "My Auto";
-	std::string m_autoSelected;
 	Drive drive{};
+	int P = 0;
+	int I = 0;
+	int D = 0;
+	int F = 0;
 };

@@ -25,17 +25,20 @@ public:
 	void ArcadeDrive(double deadzone, double sensitivity);
 	//deadzone between 0 and 1.00
 	//sensitivity between 0 and 1.00
-	void PIDForw(double u, double Dtot, double Vf, double CoW);
-	//u = initial velocity
-	//Dtot = total distance
-	// Vf = final velocity
-	//CoW = circumference of Wheel
+	void PIDForw(double Dtot, bool Vf_zero_at_end, double CoW, double a);
+		//U = initial velocity
+		//Dtot = total distance
+		// Vf = final velocity
+		//CoW = circumference of Wheel
+		//a = acceleration
+	void setU(double setU);
 
 	//variables
 	int Left_FrontID = 3;
 	int Right_FrontID = 4;
 	int Left_BackID = 2;
 	int Right_BackID = 5;
+	double Uvalues[1];
 
 	//objects
 	ctre::phoenix::motorcontrol::can::WPI_TalonSRX Left_Front{Left_FrontID};

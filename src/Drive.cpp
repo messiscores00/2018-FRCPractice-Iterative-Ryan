@@ -53,15 +53,22 @@ void Drive::ArcadeDrive(double deadzone, double sensitivity){
 
 }
 
-void Drive::PIDForw(double u, double Dtot, double Vf, double CoW){
+void Drive::PIDForw(double Dtot, bool Vf_zeroatend, double CoW, double a){
 	Dtot = Dtot/CoW * 4096;
-	//Leaner motion equation
-	//s = displacement
-	double s = (u * ((2*Dtot)/(u+Vf)) + (((encoder.frc::Encoder::Get()/(counter.Get()^2))*(4*Dtot))/2));
 
-	if(s > Dtot){
+	//Leaner motion equation
+	if(Vf_zeroatend == false){
+		if( Dtot/2.0 == Uvalues[0] * (Dtot/(Uvalues[0])) + ((-a*std::pow(Dtot, 2.0))/std::pow(Uvalues[0], 2.0))){
+
+		}
 	}
+
 }
+
+void Drive::setU(double setU){
+	Uvalues[0] = setU;
+}
+
 
 
 
