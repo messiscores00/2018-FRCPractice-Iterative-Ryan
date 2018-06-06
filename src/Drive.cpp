@@ -55,33 +55,55 @@ void Drive::ArcadeDrive(double deadzone, double sensitivity){
 
 void Drive::PIDMove(double Dtot, double Vf_at_end, double CoW, double a, int timeout, double sensitivity){
 	Dtot = Dtot *(4096/CoW);
-	double s;
+	a = a * 12 * (4096/CoW);
+	sensitivity = sensitivity * 12 * (4096/CoW);
 	double setpoint = encoder.Get();
-	//Leaner motion equation
-	if(Vf_at_end	 == 0.0){
-		s = (2.0 * Dtot) + ((-a*std::pow(2*Dtot, 2.0))/std::pow(Uvalues[0], 2.0));
-		while(s > encoder.Get()){
-			setpoint += sensitivity;
+	if(Vf_at_end == 0.0){
+		//Leaner motion equation
+		s = (2.0 * Dtot) + ((-a*std::pow(2*Dtot, 2.0))/std::pow(Uvalue, 2.0));
+		while(s > encoder.Get() && counter.Get()*1000 > timeout){
+			if(Drive::ASecond()==true){
+				setpoint += sensitivity;
+			}
 			Left_Front.Set(ctre::phoenix::motorcontrol::ControlMode::Position, setpoint);
 			Right_Front.Set(ctre::phoenix::motorcontrol::ControlMode::Position, setpoint);
 		}
-		while(s <= encoder.Get()){
+		while(s <= encoder.Get() && counter.Get()*1000 > timeout){
 			Left_Front.StopMotor();
 			Right_Front.StopMotor();
 		}
 
 	} else{
-		s = (Uvalues[0] * (2.0 * Dtot/(Uvalues[0] + Vf_at_end))) + ((-a*std::pow(2*Dtot, 2.0))/std::pow(Uvalues[0], 2.0));
-		Drive::setU(Vf_at_end);
-
+		//Leaner motion equation
+		s = (Uvalue * (2.0 * Dtot/(Uvalue + Vf_at_end))) + ((-a*std::pow(2*Dtot, 2.0))/std::pow(Uvalue, 2.0));
+		Uvalue = Vf_at_end;
+		while(s > encoder.Get() && counter.Get()*1000 > timeout){
+			if(Drive::ASecond()==true){
+				setpoint += sensitivity;
+			}
+			Left_Front.Set(ctre::phoenix::motorcontrol::ControlMode::Position, setpoint);
+			Right_Front.Set(ctre::phoenix::motorcontrol::ControlMode::Position, setpoint);
+		}
+		while(s <= encoder.Get() && counter.Get()*1000 > timeout){
+			Left_Front.StopMotor();
+			Right_Front.StopMotor();
+		}
 	}
 
 }
 
-void Drive::setU(double setU){
-	Uvalues[0] = setU;
+bool Drive::ASecond(){
+	time(&now);
+	end = now + 1;
+	//if seconds = 1 sec the time that has passed is 0.
+	//if seconds = 0 sec the time that has passed is 1 sec.
+	seconds = difftime(now,end);
+	if(seconds > 0){
+		return false;
+	}else{
+		return true;
+	}
 }
-
 
 
 

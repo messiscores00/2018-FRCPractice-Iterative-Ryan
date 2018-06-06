@@ -32,7 +32,7 @@ void Robot::AutonomousInit() {
 }
 
 void Robot::AutonomousPeriodic() {
-
+	drive.PIDMove(120.0, 0, 18.85, 4.72, 2500, 4);
 }
 
 void Robot::TeleopInit() {
