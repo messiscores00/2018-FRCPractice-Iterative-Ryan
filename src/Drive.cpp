@@ -53,19 +53,27 @@ void Drive::ArcadeDrive(double deadzone, double sensitivity){
 
 }
 
-void Drive::PIDForw(double Dtot, bool Vf_zeroatend, double CoW, double a, int timeout, double sensitivity){
+void Drive::PIDMove(double Dtot, double Vf_at_end, double CoW, double a, int timeout, double sensitivity){
 	Dtot = Dtot *(4096/CoW);
-	double s = (2.0 * Dtot) + ((-a*std::pow(Dtot, 2.0))/std::pow(Uvalues[0], 2.0));
+	double s;
+	double setpoint = encoder.Get();
 	//Leaner motion equation
-	if(Vf_zeroatend == true){
+	if(Vf_at_end	 == 0.0){
+		s = (2.0 * Dtot) + ((-a*std::pow(2*Dtot, 2.0))/std::pow(Uvalues[0], 2.0));
 		while(s > encoder.Get()){
-			Left_Front.Set(ctre::phoenix::motorcontrol::ControlMode::Position, Dtot);
-			Right_Front.Set(ctre::phoenix::motorcontrol::ControlMode::Position, Dtot);
+			setpoint += sensitivity;
+			Left_Front.Set(ctre::phoenix::motorcontrol::ControlMode::Position, setpoint);
+			Right_Front.Set(ctre::phoenix::motorcontrol::ControlMode::Position, setpoint);
 		}
 		while(s <= encoder.Get()){
-			Left_Front.Set(ctre::phoenix::motorcontrol::ControlMode::Position, 0);
-			Right_Front.Set(ctre::phoenix::motorcontrol::ControlMode::Position, 0);
+			Left_Front.StopMotor();
+			Right_Front.StopMotor();
 		}
+
+	} else{
+		s = (Uvalues[0] * (2.0 * Dtot/(Uvalues[0] + Vf_at_end))) + ((-a*std::pow(2*Dtot, 2.0))/std::pow(Uvalues[0], 2.0));
+		Drive::setU(Vf_at_end);
+
 	}
 
 }

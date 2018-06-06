@@ -25,7 +25,7 @@ public:
 	void ArcadeDrive(double deadzone, double sensitivity);
 	//deadzone between 0 and 1.00
 	//sensitivity between 0 and 1.00
-	void PIDForw(double Dtot, bool Vf_zero_at_end, double CoW, double a, int timeout, double sensitivity);
+	void PIDMove(double Dtot, double Vf_at_end, double CoW, double a, int timeout, double sensitivity);
 		//U = initial velocity
 		//Dtot = total distance in inches
 		// Vf = final velocity
