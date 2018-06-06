@@ -12,12 +12,17 @@ void Robot::RobotInit() {
 	drive.Right_Back.Set(ctre::phoenix::motorcontrol::ControlMode::Follower, drive.Right_FrontID);
 
 	drive.Left_Front.SetSensorPhase(false);
-	drive.Right_Front.SetInverted(false);
+	drive.Right_Front.SetSensorPhase(false);
 
 	drive.Left_Front.SetInverted(false);
 	drive.Right_Front.SetInverted(false);
 	drive.Left_Back.SetInverted(false);
 	drive.Right_Back.SetInverted(false);
+
+	drive.Left_Front.SetNeutralMode(ctre::phoenix::motorcontrol::NeutralMode::Brake);
+	drive.Right_Front.SetNeutralMode(ctre::phoenix::motorcontrol::NeutralMode::Brake);
+	drive.Left_Back.SetNeutralMode(ctre::phoenix::motorcontrol::NeutralMode::Brake);
+	drive.Right_Back.SetNeutralMode(ctre::phoenix::motorcontrol::NeutralMode::Brake);
 
 	drive.PIDenable(P, I, D, F);
 }

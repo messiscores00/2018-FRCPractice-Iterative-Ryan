@@ -53,13 +53,18 @@ void Drive::ArcadeDrive(double deadzone, double sensitivity){
 
 }
 
-void Drive::PIDForw(double Dtot, bool Vf_zeroatend, double CoW, double a){
-	Dtot = Dtot/CoW * 4096;
-
+void Drive::PIDForw(double Dtot, bool Vf_zeroatend, double CoW, double a, int timeout, double sensitivity){
+	Dtot = Dtot *(4096/CoW);
+	double s = (2.0 * Dtot) + ((-a*std::pow(Dtot, 2.0))/std::pow(Uvalues[0], 2.0));
 	//Leaner motion equation
-	if(Vf_zeroatend == false){
-		if( Dtot/2.0 == Uvalues[0] * (Dtot/(Uvalues[0])) + ((-a*std::pow(Dtot, 2.0))/std::pow(Uvalues[0], 2.0))){
-
+	if(Vf_zeroatend == true){
+		while(s > encoder.Get()){
+			Left_Front.Set(ctre::phoenix::motorcontrol::ControlMode::Position, Dtot);
+			Right_Front.Set(ctre::phoenix::motorcontrol::ControlMode::Position, Dtot);
+		}
+		while(s <= encoder.Get()){
+			Left_Front.Set(ctre::phoenix::motorcontrol::ControlMode::Position, 0);
+			Right_Front.Set(ctre::phoenix::motorcontrol::ControlMode::Position, 0);
 		}
 	}
 

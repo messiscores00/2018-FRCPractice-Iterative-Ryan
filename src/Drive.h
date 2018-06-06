@@ -25,12 +25,14 @@ public:
 	void ArcadeDrive(double deadzone, double sensitivity);
 	//deadzone between 0 and 1.00
 	//sensitivity between 0 and 1.00
-	void PIDForw(double Dtot, bool Vf_zero_at_end, double CoW, double a);
+	void PIDForw(double Dtot, bool Vf_zero_at_end, double CoW, double a, int timeout, double sensitivity);
 		//U = initial velocity
-		//Dtot = total distance
+		//Dtot = total distance in inches
 		// Vf = final velocity
 		//CoW = circumference of Wheel
 		//a = acceleration
+		//timeout in seconds
+		//sensitivity is in ticks per second
 	void setU(double setU);
 
 	//variables
@@ -47,7 +49,6 @@ public:
 	ctre::phoenix::motorcontrol::can::WPI_TalonSRX Right_Back{Right_BackID};
 	frc::Joystick xbox1{0};
 	frc::DifferentialDrive _diffDrive{Left_Front, Right_Front};
-	frc::Counter counter{0};
 	frc::Encoder encoder{0, 1, false, frc::CounterBase::EncodingType::k4X};
 };
 
