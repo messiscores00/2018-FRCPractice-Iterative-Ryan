@@ -7,6 +7,30 @@
 
 #include "Robot.h"
 
+/*
+ *
+ *
+ *
+ * CHECK DRIVE.H FOR WHAT THE ARGUMENTS SHOULD BE INPUTED AS!!!!!!
+ *
+ *
+ *
+ *
+ *
+ *
+ *Added PIDTurn
+
+-commented code
+-reduced the length of the PIDmove
+-fixed conversions with the variables
+-ready for testing
+ *
+ *
+ *
+ *
+ *
+ */
+
 void Robot::RobotInit() {
 	drive.Left_Back.Set(ctre::phoenix::motorcontrol::ControlMode::Follower, drive.Left_FrontID);
 	drive.Right_Back.Set(ctre::phoenix::motorcontrol::ControlMode::Follower, drive.Right_FrontID);
@@ -32,7 +56,8 @@ void Robot::AutonomousInit() {
 }
 
 void Robot::AutonomousPeriodic() {
-	drive.PIDMove(120.0, 0, 18.85, 4.72, 2500, 4);
+	drive.PIDMove(120.0, 0, 18.85, 4.72, 2500, 4.0);
+	drive.PIDTurn(0.0, 18.85, 4.72, 2500, 4.0, 34, 62, 90);
 }
 
 void Robot::TeleopInit() {
