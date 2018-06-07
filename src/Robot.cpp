@@ -16,19 +16,6 @@
  *
  *
  *
- *
- *
- *Added PIDTurn
-
--commented code
--reduced the length of the PIDmove
--fixed conversions with the variables
--ready for testing
- *
- *
- *
- *
- *
  */
 
 void Robot::RobotInit() {
