@@ -15,6 +15,8 @@
 #include <Counter.h>
 #include <Encoder.h>
 #include <time.h>
+#include <math.h>
+#include <AnalogGyro.h>
 
 class Drive {
 public:
@@ -26,19 +28,22 @@ public:
 	void ArcadeDrive(double deadzone, double sensitivity);
 	//deadzone between 0 and 1.00
 	//sensitivity between 0 and 1.00
-	void PIDMove(double Dtot, double Vf_at_end, double CoW, double a, int timeout, double sensitivity);
+	void PIDMove(double Dtot, double Vf_at_end, double CoW, double acceleration, int timeout, double sensitivity);
 		//U = initial velocity
 		//Dtot = total distance in inches
 		//Vf_at_end = final velocity in ft/sec
 		//CoW = circumference of Wheel in inches
-		//a = max acceleration in ft/s^2
+		//acceleration = max acceleration in ft/s^2
 		//timeout in milliseconds
 		//sensitivity is in feet per second
-	void PIDTurn(double Vf_at_end, double CoW, double a, int timeout, double sensitivity, double radius_left, double radius_right, int angle);
-		//radius in inches
-		//radius_left = the radius of the left side of the robot
+	void PIDTurn(double Vf_at_end, double CoW, double acceleration, int timeout, double sensitivity, double a_left, double b_left, double a_right, double b_right, int angle);
+		//a_left, b_left, a_right, b_right in inches
+		//a/b is from the equation of an elipse
 		//angle in degrees
 	bool ASecond();
+	void Point(int angle, double sensitivity, double deadzone);
+	//sensitivity = how fast you want to turn. value 0 to 1
+	//deadzone in degrees of deadzone
 
 	//variables
 	int Left_FrontID = 3;
@@ -67,6 +72,7 @@ public:
 	std::time_t now;
 	std::time_t end;
 	frc::Counter counter{};
+	frc::AnalogGyro gyro{0};
 };
 
 #endif /* DRIVE_H_ */

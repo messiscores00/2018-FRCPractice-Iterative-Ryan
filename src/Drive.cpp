@@ -51,10 +51,10 @@ void Drive::ArcadeDrive(double deadzone, double sensitivity){
 
 }
 
-void Drive::PIDMove(double Dtot, double Vf_at_end, double CoW, double a, int timeout, double sensitivity){
+void Drive::PIDMove(double Dtot, double Vf_at_end, double CoW, double acceleration, int timeout, double sensitivity){
 	//convert variables into ticks
 	Dtot = Dtot *(4096/CoW);
-	a = a * 12 * (4096/CoW);
+	acceleration = acceleration * 12 * (4096/CoW);
 	Vf_at_end = Vf_at_end * 12 * (4096/CoW);
 	sensitivity = sensitivity * 12 * (4096/CoW);
 	//sets the setpoint to the value of the encoder at that time
@@ -62,10 +62,10 @@ void Drive::PIDMove(double Dtot, double Vf_at_end, double CoW, double a, int tim
 
 	if(Vf_at_end == 0.0){
 		//linear motion equation
-		s = (2.0 * Dtot) + ((-a*std::pow(2*Dtot, 2.0))/std::pow(Uvalue, 2.0));
+		s = (2.0 * Dtot) + ((-acceleration*std::pow(2*Dtot, 2.0))/std::pow(Uvalue, 2.0));
 	}else{
 		//same equation, but with the final velocity can be set
-		s = (Uvalue * (2.0 * Dtot/(Uvalue + Vf_at_end))) + ((-a*std::pow(2*Dtot, 2.0))/std::pow(Uvalue, 2.0));
+		s = (Uvalue * (2.0 * Dtot/(Uvalue + Vf_at_end))) + ((-acceleration*std::pow(2*Dtot, 2.0))/std::pow(Uvalue, 2.0));
 		//sets the final velocity so it can be used for the next call of this function
 		Uvalue = Vf_at_end;
 	}
@@ -87,26 +87,28 @@ void Drive::PIDMove(double Dtot, double Vf_at_end, double CoW, double a, int tim
 		}
 }
 
-void Drive::PIDTurn(double Vf_at_end, double CoW, double a, int timeout, double sensitivity, double radius_left, double radius_right, int angle){
+void Drive::PIDTurn(double Vf_at_end, double CoW, double acceleration, int timeout, double sensitivity, double a_left, double b_left, double a_right, double b_right, int angle){
 	//converting to ticks
 	sensitivity = sensitivity * 12 * (4096/CoW);
 	Vf_at_end = Vf_at_end * 12 * (4096/CoW);
-	radius_left = radius_left * 12 * (4096/CoW);
-	radius_right = radius_right * 12 * (4096/CoW);
+	a_left = a_left * 12 * (4096/CoW);
+	b_left = b_left * 12 * (4096/CoW);
+	a_right = a_right * 12 * (4096/CoW);
+	b_right = b_right * 12 * (4096/CoW);
 	//finding the total distance for each side of the robot
 		//the reason why it is different is because you are going around a circle. This causes the ark length of the right side and the left side to be different because the radius is different.
-	ArkLeng_left = 2 * 3.14 * radius_left * (angle/360);
-	ArkLeng_right = 2 * 3.14 * radius_right * (angle/360);
+	ArkLeng_left = 2.0 * 3.14 * sqrt((std::pow(a_left, 2.0)+ std::pow(b_left, 2.0))/2) * (angle/360);
+	ArkLeng_right = 2.0 * 3.14 * sqrt((std::pow(a_right, 2.0)+ std::pow(b_right, 2.0))/2) * (angle/360);
 	//setting setpoint to where the robot is
 	setpoint = encoder.Get();
 
 	//linear motion equation for each side of the robot.
 	if(Vf_at_end == 0.0){
-		Sleft = (2.0 * ArkLeng_left) + ((-a*std::pow(2*ArkLeng_left, 2.0))/std::pow(Uvalue, 2.0));
-		Sright = (2.0 * ArkLeng_right) + ((-a*std::pow(2*ArkLeng_right, 2.0))/std::pow(Uvalue, 2.0));
+		Sleft = (2.0 * ArkLeng_left) + ((-acceleration*std::pow(2*ArkLeng_left, 2.0))/std::pow(Uvalue, 2.0));
+		Sright = (2.0 * ArkLeng_right) + ((-acceleration*std::pow(2*ArkLeng_right, 2.0))/std::pow(Uvalue, 2.0));
 	}else{
-		Sleft = (Uvalue * (2.0 * ArkLeng_left/(Uvalue + Vf_at_end))) + ((-a*std::pow(2*ArkLeng_left, 2.0))/std::pow(Uvalue, 2.0));
-		Sright = (Uvalue * (2.0 * ArkLeng_right/(Uvalue + Vf_at_end))) + ((-a*std::pow(2*ArkLeng_right, 2.0))/std::pow(Uvalue, 2.0));
+		Sleft = (Uvalue * (2.0 * ArkLeng_left/(Uvalue + Vf_at_end))) + ((-acceleration*std::pow(2*ArkLeng_left, 2.0))/std::pow(Uvalue, 2.0));
+		Sright = (Uvalue * (2.0 * ArkLeng_right/(Uvalue + Vf_at_end))) + ((-acceleration*std::pow(2*ArkLeng_right, 2.0))/std::pow(Uvalue, 2.0));
 		Uvalue = Vf_at_end;
 	}
 
@@ -148,6 +150,19 @@ void Drive::PIDTurn(double Vf_at_end, double CoW, double a, int timeout, double 
 		}
 
 	}
+
+void Drive::Point(int angle, double sensitivity, double deadzone){
+	if(Uvalue == 0){
+		while(lround(gyro.GetAngle()) % 360 < angle - (deadzone/2)){
+			Left_Front.Set(ctre::phoenix::motorcontrol::ControlMode::PercentOutput, -sensitivity);
+			Right_Front.Set(ctre::phoenix::motorcontrol::ControlMode::PercentOutput, sensitivity);
+		}
+		while(lround(gyro.GetAngle()) % 360 > angle + (deadzone/2)){
+			Left_Front.Set(ctre::phoenix::motorcontrol::ControlMode::PercentOutput, sensitivity);
+			Right_Front.Set(ctre::phoenix::motorcontrol::ControlMode::PercentOutput, -sensitivity);
+		}
+	}
+}
 
 bool Drive::ASecond(){
 	time(&now);
