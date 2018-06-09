@@ -7,6 +7,7 @@
 
 #ifndef DRIVE_H_
 #define DRIVE_H_
+
 #include <Joystick.h>
 #include <ctre/phoenix.h>
 #include <Drive/DifferentialDrive.h>
@@ -42,7 +43,7 @@ public:
 		//angle in degrees
 	bool ASecond();
 	void Point(int angle, double sensitivity, double deadzone);
-	//sensitivity = how fast you want to turn. value 0 to 1
+	//sensitivity = how fast you want to turn. value in ticks 53 ticks = one degree
 	//deadzone in degrees of deadzone
 
 	//variables
@@ -60,6 +61,7 @@ public:
 	double Sleft;
 	double Sright;
 	double setpoint;
+	double encoder = (Left_Front.GetSelectedSensorPosition(1) * 4 + Right_Front.GetSelectedSensorPosition(1) * 4) / 2 ;
 
 	//objects
 	ctre::phoenix::motorcontrol::can::WPI_TalonSRX Left_Front{Left_FrontID};
@@ -68,11 +70,11 @@ public:
 	ctre::phoenix::motorcontrol::can::WPI_TalonSRX Right_Back{Right_BackID};
 	frc::Joystick xbox1{0};
 	frc::DifferentialDrive _diffDrive{Left_Front, Right_Front};
-	frc::Encoder encoder{0, 1, false, frc::CounterBase::EncodingType::k4X};
 	std::time_t now;
 	std::time_t end;
 	frc::Counter counter{};
 	frc::AnalogGyro gyro{0};
+	std::ostringstream stringConverter;
 };
 
 #endif /* DRIVE_H_ */

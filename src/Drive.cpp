@@ -58,7 +58,7 @@ void Drive::PIDMove(double Dtot, double Vf_at_end, double CoW, double accelerati
 	Vf_at_end = Vf_at_end * 12 * (4096/CoW);
 	sensitivity = sensitivity * 12 * (4096/CoW);
 	//sets the setpoint to the value of the encoder at that time
-	setpoint = encoder.Get();
+	setpoint = encoder;
 
 	if(Vf_at_end == 0.0){
 		//linear motion equation
@@ -71,7 +71,7 @@ void Drive::PIDMove(double Dtot, double Vf_at_end, double CoW, double accelerati
 	}
 
 	// * by 1000 because it outputs in seconds while timeout is in miliseconds
-		while(s > encoder.Get() && counter.Get()*1000 > timeout){
+		while(s > encoder && counter.Get()*1000 > timeout){
 			if(Drive::ASecond()==true){
 				//every second add the sensitivity to the setpoint
 				setpoint += sensitivity;
@@ -79,8 +79,9 @@ void Drive::PIDMove(double Dtot, double Vf_at_end, double CoW, double accelerati
 			//moves robot to the setpoint
 			Left_Front.Set(ctre::phoenix::motorcontrol::ControlMode::Position, setpoint);
 			Right_Front.Set(ctre::phoenix::motorcontrol::ControlMode::Position, setpoint);
+
 		}
-		if(s <= encoder.Get() && counter.Get()*1000 > timeout){
+		if(s <= encoder && counter.Get()*1000 > timeout){
 			//once you have reached the point where you need to stop (displacement) you stop
 			Left_Front.StopMotor();
 			Right_Front.StopMotor();
@@ -100,7 +101,7 @@ void Drive::PIDTurn(double Vf_at_end, double CoW, double acceleration, int timeo
 	ArkLeng_left = 2.0 * 3.14 * sqrt((std::pow(a_left, 2.0)+ std::pow(b_left, 2.0))/2) * (angle/360);
 	ArkLeng_right = 2.0 * 3.14 * sqrt((std::pow(a_right, 2.0)+ std::pow(b_right, 2.0))/2) * (angle/360);
 	//setting setpoint to where the robot is
-	setpoint = encoder.Get();
+	setpoint = encoder;
 
 	//linear motion equation for each side of the robot.
 	if(Vf_at_end == 0.0){
@@ -114,36 +115,36 @@ void Drive::PIDTurn(double Vf_at_end, double CoW, double acceleration, int timeo
 
 	//checks which ark length is greater
 		if(ArkLeng_left > ArkLeng_right){
-			while(Sleft > encoder.Get() && counter.Get()*1000 > timeout){
+			while(Sleft > encoder && counter.Get()*1000 > timeout){
 				if(Drive::ASecond()==true){
 					setpoint += sensitivity;
 				}
 				Left_Front.Set(ctre::phoenix::motorcontrol::ControlMode::Position, setpoint);
 				//put the other side of the robot separate in an "if" statement because one side will stop sooner, but you want one side to continue while the other side keeps driving.
-				if(Sright > encoder.Get()){
+				if(Sright > encoder){
 					Right_Front.Set(ctre::phoenix::motorcontrol::ControlMode::Position, setpoint);
 				}else {
 					Right_Front.StopMotor();
 				}
 			}
-			if(Sleft <= encoder.Get() && counter.Get()*1000 > timeout){
+			if(Sleft <= encoder && counter.Get()*1000 > timeout){
 				Left_Front.StopMotor();
 				Right_Front.StopMotor();
 			}
 		} else if(ArkLeng_left < ArkLeng_right) {
-			while(Sright > encoder.Get() && counter.Get()*1000 > timeout){
+			while(Sright > encoder && counter.Get()*1000 > timeout){
 				if(Drive::ASecond()==true){
 					setpoint += sensitivity;
 				}
 				Right_Front.Set(ctre::phoenix::motorcontrol::ControlMode::Position, setpoint);
 				//put the other side of the robot separate in an "if" statement because one side will stop sooner, but you want one side to continue while the other side keeps driving.
-				if(Sleft > encoder.Get()){
+				if(Sleft > encoder){
 					Left_Front.Set(ctre::phoenix::motorcontrol::ControlMode::Position, setpoint);
 				}else {
 					Left_Front.StopMotor();
 				}
 			}
-			if(Sright <= encoder.Get() && counter.Get()*1000 > timeout){
+			if(Sright <= encoder && counter.Get()*1000 > timeout){
 				Right_Front.StopMotor();
 				Left_Front.StopMotor();
 			}
@@ -154,12 +155,12 @@ void Drive::PIDTurn(double Vf_at_end, double CoW, double acceleration, int timeo
 void Drive::Point(int angle, double sensitivity, double deadzone){
 	if(Uvalue == 0){
 		while(lround(gyro.GetAngle()) % 360 < angle - (deadzone/2)){
-			Left_Front.Set(ctre::phoenix::motorcontrol::ControlMode::PercentOutput, -sensitivity);
-			Right_Front.Set(ctre::phoenix::motorcontrol::ControlMode::PercentOutput, sensitivity);
+			Left_Front.Set(ctre::phoenix::motorcontrol::ControlMode::Position, Left_Front.GetSelectedSensorPosition(0) - sensitivity);
+			Right_Front.Set(ctre::phoenix::motorcontrol::ControlMode::Position, Right_Front.GetSelectedSensorPosition(0) + sensitivity);
 		}
 		while(lround(gyro.GetAngle()) % 360 > angle + (deadzone/2)){
-			Left_Front.Set(ctre::phoenix::motorcontrol::ControlMode::PercentOutput, sensitivity);
-			Right_Front.Set(ctre::phoenix::motorcontrol::ControlMode::PercentOutput, -sensitivity);
+			Left_Front.Set(ctre::phoenix::motorcontrol::ControlMode::Position, Left_Front.GetSelectedSensorPosition(0)+ sensitivity);
+			Right_Front.Set(ctre::phoenix::motorcontrol::ControlMode::Position, Right_Front.GetSelectedSensorPosition(0) -sensitivity);
 		}
 	}
 }
@@ -176,14 +177,3 @@ bool Drive::ASecond(){
 		return true;
 	}
 }
-
-
-
-
-
-
-
-
-
-
-

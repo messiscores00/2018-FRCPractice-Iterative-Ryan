@@ -14,6 +14,7 @@
 #include <Drive.h>
 #include <iostream>
 #include <SmartDashboard/SmartDashboard.h>
+#include <DriverStation.h>
 
 class Robot : public frc::IterativeRobot {
 public:
