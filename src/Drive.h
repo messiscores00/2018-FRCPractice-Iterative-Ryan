@@ -18,6 +18,8 @@
 #include <time.h>
 #include <math.h>
 #include <AnalogGyro.h>
+#include <Timer.h>
+#include <AHRS.h>
 
 class Drive {
 public:
@@ -26,7 +28,7 @@ public:
 	virtual ~Drive();
 	void PIDenable(int P, int I, int D, int F);
 	void PIDdisable();
-	void ArcadeDrive(double deadzone, double sensitivity);
+	void ArcadeDrive(double deadzone, double xSpeed, double zRotation, bool squaredInputs);
 	//deadzone between 0 and 1.00
 	//sensitivity between 0 and 1.00
 	void PIDMove(double Dtot, double Vf_at_end, double CoW, double acceleration, int timeout, double sensitivity);
@@ -45,23 +47,19 @@ public:
 	void Point(int angle, double sensitivity, double deadzone);
 	//sensitivity = how fast you want to turn. value in ticks 53 ticks = one degree
 	//deadzone in degrees of deadzone
+	//angle left is negative right is positive
+	double encoder();
+	double encoderLeft();
+	double encoderRight();
+	double Vp();
+	double VpLeft();
+	double VpRight();
 
 	//variables
 	int Left_FrontID = 3;
 	int Right_FrontID = 4;
 	int Left_BackID = 2;
 	int Right_BackID = 5;
-	double seconds;
-	double s; //displacement
-	double Uvalue = 0;
-	//ark length of the left and right wheel
-	double ArkLeng_left;
-	double ArkLeng_right;
-	//displacement of left and right wheels
-	double Sleft;
-	double Sright;
-	double setpoint;
-	double encoder = (Left_Front.GetSelectedSensorPosition(1) * 4 + Right_Front.GetSelectedSensorPosition(1) * 4) / 2 ;
 
 	//objects
 	ctre::phoenix::motorcontrol::can::WPI_TalonSRX Left_Front{Left_FrontID};
@@ -69,12 +67,12 @@ public:
 	ctre::phoenix::motorcontrol::can::WPI_TalonSRX Left_Back{Left_BackID};
 	ctre::phoenix::motorcontrol::can::WPI_TalonSRX Right_Back{Right_BackID};
 	frc::Joystick xbox1{0};
-	frc::DifferentialDrive _diffDrive{Left_Front, Right_Front};
 	std::time_t now;
 	std::time_t end;
-	frc::Counter counter{};
-	frc::AnalogGyro gyro{0};
+	frc::Timer counter{};
 	std::ostringstream stringConverter;
+	AHRS gyro{frc::SPI::Port::kMXP};
+
 };
 
 #endif /* DRIVE_H_ */

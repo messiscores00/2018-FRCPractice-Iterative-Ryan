@@ -34,146 +34,227 @@ void Drive::PIDdisable(){
 	Right_Front.ctre::phoenix::motorcontrol::can::WPI_TalonSRX::Config_kF(0, 0, 0);
 }
 
-void Drive::ArcadeDrive(double deadzone, double sensitivity){
-	//put the Y-axis on the left joystick
-	//put the X-axis on the right joystick
-	xbox1.SetXChannel(4);
-	xbox1.SetYChannel(1);
-	double left_right = -1 * sensitivity * xbox1.GetX(frc::GenericHID::JoystickHand::kRightHand);
-	double forw_back  = sensitivity * xbox1.GetY(frc::GenericHID::JoystickHand::kLeftHand);
+void Drive::ArcadeDrive(double deadzone, double xSpeed, double zRotation, bool squaredInputs){
+	double leftMotorOutput;
+	double rightMotorOutput;
 
-	if (fabs(left_right) < deadzone)
-		left_right = 0;
-	if (fabs(forw_back) < deadzone)
-		forw_back = 0;
+	if (fabs(xSpeed) <= deadzone)
+	    xSpeed = 0;
+	if (fabs(zRotation) <= deadzone)
+	    zRotation = 0;
 
-	_diffDrive.ArcadeDrive(forw_back, left_right, false);
-
-}
-
-void Drive::PIDMove(double Dtot, double Vf_at_end, double CoW, double acceleration, int timeout, double sensitivity){
-	//convert variables into ticks
-	Dtot = Dtot *(4096/CoW);
-	acceleration = acceleration * 12 * (4096/CoW);
-	Vf_at_end = Vf_at_end * 12 * (4096/CoW);
-	sensitivity = sensitivity * 12 * (4096/CoW);
-	//sets the setpoint to the value of the encoder at that time
-	setpoint = encoder;
-
-	if(Vf_at_end == 0.0){
-		//linear motion equation
-		s = (2.0 * Dtot) + ((-acceleration*std::pow(2*Dtot, 2.0))/std::pow(Uvalue, 2.0));
-	}else{
-		//same equation, but with the final velocity can be set
-		s = (Uvalue * (2.0 * Dtot/(Uvalue + Vf_at_end))) + ((-acceleration*std::pow(2*Dtot, 2.0))/std::pow(Uvalue, 2.0));
-		//sets the final velocity so it can be used for the next call of this function
-		Uvalue = Vf_at_end;
+	if (squaredInputs) {
+	   xSpeed = std::copysign(xSpeed * xSpeed, xSpeed);
+	   zRotation = std::copysign(zRotation * zRotation, zRotation);
 	}
 
-	// * by 1000 because it outputs in seconds while timeout is in miliseconds
-		while(s > encoder && counter.Get()*1000 > timeout){
-			if(Drive::ASecond()==true){
-				//every second add the sensitivity to the setpoint
-				setpoint += sensitivity;
-			}
-			//moves robot to the setpoint
-			Left_Front.Set(ctre::phoenix::motorcontrol::ControlMode::Position, setpoint);
-			Right_Front.Set(ctre::phoenix::motorcontrol::ControlMode::Position, setpoint);
+	   double maxInput = std::copysign(std::max(std::abs(xSpeed), std::abs(zRotation)), xSpeed);
 
-		}
-		if(s <= encoder && counter.Get()*1000 > timeout){
-			//once you have reached the point where you need to stop (displacement) you stop
-			Left_Front.StopMotor();
-			Right_Front.StopMotor();
-		}
+	   if (xSpeed >= 0.0)
+	   {
+	      // First quadrant, else second quadrant
+	      if (zRotation >= 0.0)
+	      {
+	         leftMotorOutput = maxInput;
+	         rightMotorOutput = xSpeed - zRotation;
+	      }
+	      else
+	      {
+	         leftMotorOutput = xSpeed + zRotation;
+	         rightMotorOutput = maxInput;
+	      }
+	   }
+	   else
+	   {
+	      // Third quadrant, else fourth quadrant
+	      if (zRotation >= 0.0)
+	      {
+	         leftMotorOutput = xSpeed + zRotation;
+	         rightMotorOutput = maxInput;
+	      }
+	      else
+	      {
+	         leftMotorOutput = maxInput;
+	         rightMotorOutput = xSpeed - zRotation;
+	      }
+	   }
+	   Left_Front.Set(leftMotorOutput);
+	   Right_Front.Set(-rightMotorOutput);
 }
 
-void Drive::PIDTurn(double Vf_at_end, double CoW, double acceleration, int timeout, double sensitivity, double a_left, double b_left, double a_right, double b_right, int angle){
-	//converting to ticks
+void Drive::PIDMove(double Dtot, double Vf_at_end, double CoW, double Maxacceleration, int timeout, double sensitivity){
+	//convert variables into ticks
+	Dtot = Dtot *(4096/CoW);
+	Maxacceleration = Maxacceleration * 12 * (4096/CoW);
+	Vf_at_end = Vf_at_end * 12 * (4096/CoW);
+	sensitivity = sensitivity * 12 * (4096/CoW);
+
+	//variables
+	double setpoint;
+	double lastime;
+	double difference;
+	double s; //displacement
+	double start;
+
+	//set variables
+	start = encoder();
+	lastime = counter.GetFPGATimestamp();
+
+	while(encoder() - start < Dtot && counter.GetFPGATimestamp()*1000 > timeout){
+		lastime = counter.GetFPGATimestamp();
+		if(Vp() == 0 && Vf_at_end == 0){
+			//accelerate{
+			difference = counter.GetFPGATimestamp() - lastime;
+			setpoint = encoder() + (Vp() + Maxacceleration*(difference)) * (difference);
+			Left_Front.Set(ctre::phoenix::motorcontrol::ControlMode::Position, setpoint);
+			Right_Front.Set(ctre::phoenix::motorcontrol::ControlMode::Position, setpoint);
+			//}
+		} else {
+		s = Vp()* (2.0 * Dtot/(Vp()+Vf_at_end)) + ((-Maxacceleration*2*std::pow(Dtot, 2.0))/Vp() + std::pow(Vf_at_end, 2.0));
+			if(s < Dtot - (encoder() - start)){
+				//accelerate {
+				difference = counter.GetFPGATimestamp() - lastime;
+				setpoint = encoder() + (Vp() + Maxacceleration*(difference)) * (difference);
+				Left_Front.Set(ctre::phoenix::motorcontrol::ControlMode::Position, setpoint);
+				Right_Front.Set(ctre::phoenix::motorcontrol::ControlMode::Position, setpoint);
+				//}
+			} else {
+				//decelerate {
+				difference = counter.GetFPGATimestamp() - lastime;
+				setpoint = encoder() + (Vp() - Maxacceleration*(difference)) * (difference);
+				Left_Front.Set(ctre::phoenix::motorcontrol::ControlMode::Position, setpoint);
+				Right_Front.Set(ctre::phoenix::motorcontrol::ControlMode::Position, setpoint);
+				//}
+			}
+		}
+	}
+}
+
+void Drive::PIDTurn(double Vf_at_end, double CoW, double Maxacceleration, int timeout, double sensitivity, double a_left, double b_left, double a_right, double b_right, int angle){
+	//converting variables to ticks
 	sensitivity = sensitivity * 12 * (4096/CoW);
 	Vf_at_end = Vf_at_end * 12 * (4096/CoW);
 	a_left = a_left * 12 * (4096/CoW);
 	b_left = b_left * 12 * (4096/CoW);
 	a_right = a_right * 12 * (4096/CoW);
 	b_right = b_right * 12 * (4096/CoW);
-	//finding the total distance for each side of the robot
-		//the reason why it is different is because you are going around a circle. This causes the ark length of the right side and the left side to be different because the radius is different.
-	ArkLeng_left = 2.0 * 3.14 * sqrt((std::pow(a_left, 2.0)+ std::pow(b_left, 2.0))/2) * (angle/360);
-	ArkLeng_right = 2.0 * 3.14 * sqrt((std::pow(a_right, 2.0)+ std::pow(b_right, 2.0))/2) * (angle/360);
-	//setting setpoint to where the robot is
-	setpoint = encoder;
 
-	//linear motion equation for each side of the robot.
-	if(Vf_at_end == 0.0){
-		Sleft = (2.0 * ArkLeng_left) + ((-acceleration*std::pow(2*ArkLeng_left, 2.0))/std::pow(Uvalue, 2.0));
-		Sright = (2.0 * ArkLeng_right) + ((-acceleration*std::pow(2*ArkLeng_right, 2.0))/std::pow(Uvalue, 2.0));
-	}else{
-		Sleft = (Uvalue * (2.0 * ArkLeng_left/(Uvalue + Vf_at_end))) + ((-acceleration*std::pow(2*ArkLeng_left, 2.0))/std::pow(Uvalue, 2.0));
-		Sright = (Uvalue * (2.0 * ArkLeng_right/(Uvalue + Vf_at_end))) + ((-acceleration*std::pow(2*ArkLeng_right, 2.0))/std::pow(Uvalue, 2.0));
-		Uvalue = Vf_at_end;
-	}
+	//variables
+	double setpoint;
+	double Sleft;
+	double Sright;
+	double lastime;
+	double Left_Start;
+	double Right_Start;
+	//ark length of the left and right wheel
+	double ArkLeng_left;
+	double ArkLeng_right;
+	double difference;
 
-	//checks which ark length is greater
+	//set variables
+		//ark length of an eclipse
+	ArkLeng_left = 2.0 * 3.14 * sqrt((std::pow(a_left, 2.0) + std::pow(b_left, 2.0))/2) * (angle/360);
+	ArkLeng_right = 2.0 * 3.14 * sqrt((std::pow(a_right, 2.0) + std::pow(b_right, 2.0))/2) * (angle/360);
+	Left_Start = encoderLeft();
+	Right_Start = encoderRight();
+	lastime = counter.GetFPGATimestamp();
+
 		if(ArkLeng_left > ArkLeng_right){
-			while(Sleft > encoder && counter.Get()*1000 > timeout){
-				if(Drive::ASecond()==true){
-					setpoint += sensitivity;
-				}
-				Left_Front.Set(ctre::phoenix::motorcontrol::ControlMode::Position, setpoint);
-				//put the other side of the robot separate in an "if" statement because one side will stop sooner, but you want one side to continue while the other side keeps driving.
-				if(Sright > encoder){
-					Right_Front.Set(ctre::phoenix::motorcontrol::ControlMode::Position, setpoint);
-				}else {
-					Right_Front.StopMotor();
-				}
-			}
-			if(Sleft <= encoder && counter.Get()*1000 > timeout){
-				Left_Front.StopMotor();
-				Right_Front.StopMotor();
-			}
-		} else if(ArkLeng_left < ArkLeng_right) {
-			while(Sright > encoder && counter.Get()*1000 > timeout){
-				if(Drive::ASecond()==true){
-					setpoint += sensitivity;
-				}
-				Right_Front.Set(ctre::phoenix::motorcontrol::ControlMode::Position, setpoint);
-				//put the other side of the robot separate in an "if" statement because one side will stop sooner, but you want one side to continue while the other side keeps driving.
-				if(Sleft > encoder){
+			while(encoderLeft() - Left_Start < ArkLeng_left){
+				Sleft = VpLeft() * (2.0 * ArkLeng_left/(VpLeft()+Vf_at_end)) + ((-Maxacceleration*2*std::pow(ArkLeng_left, 2.0))/VpLeft() + std::pow(Vf_at_end, 2.0));
+				Sright = VpRight() * (2.0 * ArkLeng_right/(VpRight()+Vf_at_end)) + ((-Maxacceleration*2*std::pow(ArkLeng_right, 2.0))/VpRight() + std::pow(Vf_at_end, 2.0));
+				if(Sleft < ArkLeng_left - (encoderLeft() - Left_Start)){
+					//accelerate Left{
+					difference = counter.GetFPGATimestamp() - lastime;
+					setpoint = encoderLeft() + (VpLeft() + Maxacceleration*(difference)) * (difference);
 					Left_Front.Set(ctre::phoenix::motorcontrol::ControlMode::Position, setpoint);
-				}else {
-					Left_Front.StopMotor();
+					//}
+					if(Sright < ArkLeng_right - (encoderRight() - Right_Start)){
+						//accelerate Right {
+						difference = counter.GetFPGATimestamp() - lastime;
+						setpoint = encoderRight() + (VpRight() + Maxacceleration*(difference)) * (difference);
+						Right_Front.Set(ctre::phoenix::motorcontrol::ControlMode::Position, setpoint);
+						//}
+					}
+				} else {
+					//decelerate Left & Right {
+					difference = counter.GetFPGATimestamp() - lastime;
+					setpoint = encoderLeft() + (VpLeft() - Maxacceleration*(difference)) * (difference);
+					Left_Front.Set(ctre::phoenix::motorcontrol::ControlMode::Position, setpoint);
+					setpoint = encoderRight() + (VpRight() - Maxacceleration*(difference)) * (difference);
+					Right_Front.Set(ctre::phoenix::motorcontrol::ControlMode::Position, setpoint);
+					//}
+				}
+
+			}
+		}else{
+			while (encoderRight() - Right_Start < ArkLeng_right){
+				Sleft = VpLeft() * (2.0 * ArkLeng_left/(VpLeft()+Vf_at_end)) + ((-Maxacceleration*2*std::pow(ArkLeng_left, 2.0))/VpLeft() + std::pow(Vf_at_end, 2.0));
+				Sright = VpRight() * (2.0 * ArkLeng_right/(VpRight()+Vf_at_end)) + ((-Maxacceleration*2*std::pow(ArkLeng_right, 2.0))/VpRight() + std::pow(Vf_at_end, 2.0));
+				if(Sright < ArkLeng_right - (encoderRight() - Right_Start)){
+					//accelerate Right {
+					difference = counter.GetFPGATimestamp() - lastime;
+					setpoint = encoderRight() + (VpRight() + Maxacceleration*(difference)) * (difference);
+					Right_Front.Set(ctre::phoenix::motorcontrol::ControlMode::Position, setpoint);
+					//}
+					if(Sleft < ArkLeng_left - ( Left_Front.GetSelectedSensorPosition(0) - Left_Start)){
+						//accelerate Left {
+						difference = counter.GetFPGATimestamp() - lastime;
+						setpoint = encoderLeft() + (VpLeft() + Maxacceleration*(difference)) * (difference);
+						Left_Front.Set(ctre::phoenix::motorcontrol::ControlMode::Position, setpoint);
+						//}
+					} else {
+						//decelerate Left {
+						difference = counter.GetFPGATimestamp() - lastime;
+						setpoint = encoderLeft() + (VpLeft() - Maxacceleration*(difference)) * (difference);
+						Left_Front.Set(ctre::phoenix::motorcontrol::ControlMode::Position, setpoint);
+						//}
+					}
+				} else {
+					//decelerate Left & Right {
+					difference = counter.GetFPGATimestamp() - lastime;
+					setpoint = encoderLeft() + (VpLeft() - Maxacceleration*(difference)) * (difference);
+					Left_Front.Set(ctre::phoenix::motorcontrol::ControlMode::Position, setpoint);
+					setpoint = encoderRight() + (VpRight() - Maxacceleration*(difference)) * (difference);
+					Right_Front.Set(ctre::phoenix::motorcontrol::ControlMode::Position, setpoint);
+					//}
 				}
 			}
-			if(Sright <= encoder && counter.Get()*1000 > timeout){
-				Right_Front.StopMotor();
-				Left_Front.StopMotor();
-			}
 		}
-
-	}
-
-void Drive::Point(int angle, double sensitivity, double deadzone){
-	if(Uvalue == 0){
-		while(lround(gyro.GetAngle()) % 360 < angle - (deadzone/2)){
-			Left_Front.Set(ctre::phoenix::motorcontrol::ControlMode::Position, Left_Front.GetSelectedSensorPosition(0) - sensitivity);
-			Right_Front.Set(ctre::phoenix::motorcontrol::ControlMode::Position, Right_Front.GetSelectedSensorPosition(0) + sensitivity);
-		}
-		while(lround(gyro.GetAngle()) % 360 > angle + (deadzone/2)){
-			Left_Front.Set(ctre::phoenix::motorcontrol::ControlMode::Position, Left_Front.GetSelectedSensorPosition(0)+ sensitivity);
-			Right_Front.Set(ctre::phoenix::motorcontrol::ControlMode::Position, Right_Front.GetSelectedSensorPosition(0) -sensitivity);
-		}
-	}
 }
 
-bool Drive::ASecond(){
-	time(&now);
-	end = now + 1;
-	//if seconds = 1 sec the time that has passed is 0.
-	//if seconds = 0 sec the time that has passed is 1 sec.
-	seconds = difftime(now,end);
-	if(seconds > 0){
-		return false;
-	}else{
-		return true;
+void Drive::Point(int angle, double sensitivity, double deadzone){
+		while(lround(gyro.GetAngle()) % 360 < angle - (deadzone/2)){
+			Left_Front.Set(ctre::phoenix::motorcontrol::ControlMode::PercentOutput, -sensitivity);
+			Right_Front.Set(ctre::phoenix::motorcontrol::ControlMode::PercentOutput, -sensitivity);
+		}
+		while(lround(gyro.GetAngle()) % 360 > angle + (deadzone/2)){
+			Left_Front.Set(ctre::phoenix::motorcontrol::ControlMode::PercentOutput, sensitivity);
+			Right_Front.Set(ctre::phoenix::motorcontrol::ControlMode::PercentOutput, sensitivity);
+		}
 	}
+
+//Getter function
+double Drive::encoder(){
+	return (Left_Front.GetSelectedSensorPosition(0) + Right_Back.GetSelectedSensorPosition(0)) / 2;
+}
+
+double Drive::encoderLeft(){
+	return Left_Front.GetSelectedSensorPosition(0);
+}
+
+double Drive::encoderRight(){
+	return Right_Back.GetSelectedSensorPosition(0);
+}
+
+double Drive::Vp(){
+	return (Left_Front.GetSelectedSensorVelocity(0) + Right_Back.GetSelectedSensorVelocity(0)) / 2;
+}
+
+double Drive::VpLeft(){
+	return Left_Front.GetSelectedSensorVelocity(0);
+}
+
+double Drive::VpRight(){
+	return Right_Back.GetSelectedSensorVelocity(0);
 }

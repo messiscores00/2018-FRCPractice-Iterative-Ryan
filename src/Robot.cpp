@@ -19,8 +19,6 @@
  */
 
 void Robot::RobotInit() {
-	frc::DriverStation::ReportWarning("START INIT");
-
 	//set motors to follower mode
 	drive.Left_Back.Set(ctre::phoenix::motorcontrol::ControlMode::Follower, drive.Left_FrontID);
 	drive.Right_Back.Set(ctre::phoenix::motorcontrol::ControlMode::Follower, drive.Right_FrontID);
@@ -36,16 +34,16 @@ void Robot::RobotInit() {
     drive.Right_Back.ConfigPeakCurrentLimit(30, 0);
 
     //set the sensors to QuadEncoders
-	drive.Right_Front.ConfigSelectedFeedbackSensor(ctre::phoenix::motorcontrol::FeedbackDevice::QuadEncoder, 0, 0);
+	drive.Right_Back.ConfigSelectedFeedbackSensor(ctre::phoenix::motorcontrol::FeedbackDevice::QuadEncoder, 0, 0);
 	drive.Left_Front.ConfigSelectedFeedbackSensor(ctre::phoenix::motorcontrol::FeedbackDevice::QuadEncoder, 0, 0);
 
 	//set the encoder value to 0
 	drive.Left_Front.SetSelectedSensorPosition(0, 0, 0);
-	drive.Right_Front.SetSelectedSensorPosition(0, 0, 0);
+	drive.Right_Back.SetSelectedSensorPosition(0, 0, 0);
 
 	//invert encoders
-	drive.Left_Front.SetSensorPhase(false);
-	drive.Right_Front.SetSensorPhase(false);
+	drive.Left_Front.SetSensorPhase(true);
+	drive.Right_Back.SetSensorPhase(false);
 
 	//invert motors
 	drive.Left_Front.SetInverted(false);
@@ -63,7 +61,7 @@ void Robot::RobotInit() {
 	drive.PIDenable(P, I, D, F);
 
 	//Sets the gyro
-	drive.gyro.frc::AnalogGyro::Calibrate();
+	drive.gyro.Reset();
 
 	//sets the name of the objects
 	drive.Left_Front.SetName("Left_Front");
@@ -72,41 +70,31 @@ void Robot::RobotInit() {
 	drive.Right_Back.SetName("Right_Back");
 
 	//reports
-	drive.stringConverter << drive.encoder;
-	frc::DriverStation::ReportWarning("Encoder: " + drive.stringConverter.str());
+	frc::DriverStation::ReportWarning("Encoder: " + std::to_string(drive.encoder()));
+	//frc::DriverStation::ReportWarning("Gyro: " +  std::to_string(drive.gyro.GetAngle()));
 
-
-	frc::DriverStation::ReportWarning("END INIT");
 }
 
 void Robot::AutonomousInit() {
 
+
 }
 
 void Robot::AutonomousPeriodic() {
-	drive.PIDMove(120.0, 0, 18.85, 4.72, 2500, 4.0);
+	frc::DriverStation::ReportWarning("Encoder: " + std::to_string(drive.encoder()));
+	drive.PIDMove(120.0, 0, 18.85, 4.72, 25000000, 4.0);
+	//drive.PIDTurn(0.0, 18.85, 4.72, 2500, 4.0, 34, 34, 62, 62, 90);
+	//drive.Point(90 , .3, 10); DONE
 
-	//tests
-	drive.stringConverter << drive.encoder;
-	frc::DriverStation::ReportWarning("Encoder: " + drive.stringConverter.str());
-	drive.stringConverter << drive.counter.Get();
-	frc::DriverStation::ReportWarning("Time: " + drive.stringConverter.str());
-	while(drive.ASecond() == false){
-		frc::DriverStation::ReportWarning("false");
-	}
-	drive.stringConverter << drive.gyro.GetAngle();
-	frc::DriverStation::ReportWarning("Time: " + drive.stringConverter.str());
-
-	drive.PIDTurn(0.0, 18.85, 4.72, 2500, 4.0, 34, 34, 62, 62, 90);
-	drive.Point(90 , 53, 10);
 }
 
 void Robot::TeleopInit() {
-
+	drive.xbox1.SetYChannel(1);
+	drive.xbox1.SetXChannel(4);
 }
 
 void Robot::TeleopPeriodic() {
-	drive.ArcadeDrive(.02, 1);
+	drive.ArcadeDrive(.02, drive.xbox1.GetY(frc::GenericHID::JoystickHand::kLeftHand), -1 * drive.xbox1.GetX(frc::GenericHID::JoystickHand::kLeftHand) , true);
 }
 
 void Robot::TestPeriodic() {}

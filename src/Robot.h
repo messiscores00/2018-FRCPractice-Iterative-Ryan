@@ -28,7 +28,7 @@ public:
 
 private:
 	Drive drive{};
-	int P = 0;
+	int P = 1;
 	int I = 0;
 	int D = 0;
 	int F = 0;
