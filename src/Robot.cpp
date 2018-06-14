@@ -24,22 +24,22 @@ void Robot::RobotInit() {
 	drive.Right_Back.Set(ctre::phoenix::motorcontrol::ControlMode::Follower, drive.Right_FrontID);
 
 	//select primary closed loop
-    drive.Left_Front.SelectProfileSlot(0, 0);
-    drive.Right_Front.SelectProfileSlot(0, 0);
+    drive.Left_Front.SelectProfileSlot(slotIdx, pidIdx);
+    drive.Right_Front.SelectProfileSlot(slotIdx, pidIdx);
 
     //set the peak current to 30 amps because we have 30 amp breakers
-    drive.Left_Front.ConfigPeakCurrentLimit(30, 0);
-    drive.Left_Back.ConfigPeakCurrentLimit(30, 0);
-    drive.Right_Front.ConfigPeakCurrentLimit(30, 0);
-    drive.Right_Back.ConfigPeakCurrentLimit(30, 0);
+    drive.Left_Front.ConfigPeakCurrentLimit(amps, timeoutMs_ConfigPeakCurrentLimit);
+    drive.Left_Back.ConfigPeakCurrentLimit(amps, timeoutMs_ConfigPeakCurrentLimit);
+    drive.Right_Front.ConfigPeakCurrentLimit(amps, timeoutMs_ConfigPeakCurrentLimit);
+    drive.Right_Back.ConfigPeakCurrentLimit(amps, timeoutMs_ConfigPeakCurrentLimit);
 
     //set the sensors to QuadEncoders
-	drive.Right_Back.ConfigSelectedFeedbackSensor(ctre::phoenix::motorcontrol::FeedbackDevice::QuadEncoder, 0, 0);
-	drive.Left_Front.ConfigSelectedFeedbackSensor(ctre::phoenix::motorcontrol::FeedbackDevice::QuadEncoder, 0, 0);
+	drive.Right_Back.ConfigSelectedFeedbackSensor(ctre::phoenix::motorcontrol::FeedbackDevice::QuadEncoder, pidIdx, timeoutMs_ConfigSelectedFeedbackSensor);
+	drive.Left_Front.ConfigSelectedFeedbackSensor(ctre::phoenix::motorcontrol::FeedbackDevice::QuadEncoder, pidIdx, timeoutMs_ConfigSelectedFeedbackSensor);
 
 	//set the encoder value to 0
-	drive.Left_Front.SetSelectedSensorPosition(0, 0, 0);
-	drive.Right_Back.SetSelectedSensorPosition(0, 0, 0);
+	drive.Left_Front.SetSelectedSensorPosition(sensorPos, pidIdx, timeoutMs_SetSelectedSensorPosition);
+	drive.Right_Back.SetSelectedSensorPosition(sensorPos, pidIdx, timeoutMs_SetSelectedSensorPosition);
 
 	//invert encoders
 	drive.Left_Front.SetSensorPhase(true);

@@ -67,10 +67,7 @@ public:
 	ctre::phoenix::motorcontrol::can::WPI_TalonSRX Left_Back{Left_BackID};
 	ctre::phoenix::motorcontrol::can::WPI_TalonSRX Right_Back{Right_BackID};
 	frc::Joystick xbox1{0};
-	std::time_t now;
-	std::time_t end;
 	frc::Timer counter{};
-	std::ostringstream stringConverter;
 	AHRS gyro{frc::SPI::Port::kMXP};
 
 };

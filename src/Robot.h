@@ -32,4 +32,11 @@ private:
 	int I = 0;
 	int D = 0;
 	int F = 0;
+	int slotIdx = 0;
+	int pidIdx = 0;
+	int sensorPos = 0;
+	int amps = 30;
+	int timeoutMs_ConfigPeakCurrentLimit = 0;
+	int timeoutMs_ConfigSelectedFeedbackSensor = 0;
+	int timeoutMs_SetSelectedSensorPosition = 0;
 };
