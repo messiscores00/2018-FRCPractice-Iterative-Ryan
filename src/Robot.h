@@ -15,6 +15,7 @@
 #include <iostream>
 #include <SmartDashboard/SmartDashboard.h>
 #include <DriverStation.h>
+#include <PIDGenerate.h>
 
 class Robot : public frc::IterativeRobot {
 public:
@@ -28,6 +29,7 @@ public:
 
 private:
 	Drive drive{};
+	PIDGenerate PIDgenerate{};
 	int P = 1;
 	int I = 0;
 	int D = 0;

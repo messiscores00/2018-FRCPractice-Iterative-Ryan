@@ -69,6 +69,7 @@ void Robot::RobotInit() {
 	drive.Right_Front.SetName("Right_Front");
 	drive.Right_Back.SetName("Right_Back");
 
+
 	//reports
 	frc::DriverStation::ReportWarning("Encoder: " + std::to_string(drive.encoder()));
 	//frc::DriverStation::ReportWarning("Gyro: " +  std::to_string(drive.gyro.GetAngle()));
@@ -95,6 +96,7 @@ void Robot::TeleopInit() {
 
 void Robot::TeleopPeriodic() {
 	drive.ArcadeDrive(.02, drive.xbox1.GetY(frc::GenericHID::JoystickHand::kLeftHand), -1 * drive.xbox1.GetX(frc::GenericHID::JoystickHand::kLeftHand) , true);
+	PIDgenerate.Graph(120, 18.85);
 }
 
 void Robot::TestPeriodic() {}
