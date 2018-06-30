@@ -58,7 +58,7 @@ void Robot::RobotInit() {
 	drive.Right_Back.SetNeutralMode(ctre::phoenix::motorcontrol::NeutralMode::Brake);
 
 	//sets the PIDS
-	drive.PIDenable(P, I, D, F);
+	//drive.PIDenable(P, I, D, F);
 
 	//Sets the gyro
 	drive.gyro.Reset();
@@ -96,7 +96,6 @@ void Robot::TeleopInit() {
 
 void Robot::TeleopPeriodic() {
 	drive.ArcadeDrive(.02, drive.xbox1.GetY(frc::GenericHID::JoystickHand::kLeftHand), -1 * drive.xbox1.GetX(frc::GenericHID::JoystickHand::kLeftHand) , true);
-	PIDgenerate.Graph(120, 18.85);
 }
 
 void Robot::TestPeriodic() {}
