@@ -33,11 +33,12 @@ private:
 	int pidIdx = 0;
 	int sensorPos = 0;
 	int amps = 30;
-	int P;
-	int I;
-	int D;
-	int F;
+	int P = 1;
+	int I = 0;
+	int D = 0;
+	int F = 0;
 	int timeoutMs_ConfigPeakCurrentLimit = 0;
 	int timeoutMs_ConfigSelectedFeedbackSensor = 0;
 	int timeoutMs_SetSelectedSensorPosition = 0;
+	bool RB_pressed;
 };

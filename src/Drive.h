@@ -28,14 +28,11 @@ public:
 	virtual ~Drive();
 	void PIDenable(int P, int I, int D, int F);
 	void PIDdisable();
-	void ArcadeDrive(double deadzone, double xSpeed, double zRotation, bool squaredInputs);
+	void ArcadeDrive(double deadzone, double xSpeed, double zRotation, bool squaredInputs, double sensitivity);
 	//deadzone between 0 and 1.00
 	//sensitivity between 0 and 1.00
-	void PIDMove(double Dtot, double Vf_at_end, double CoW, double acceleration, int timeout);
-	void PIDTurn(double Vf_at_end, double CoW, double acceleration, int timeout, double sensitivity, double a_left, double b_left, double a_right, double b_right, int angle);
-		//a_left, b_left, a_right, b_right in inches
-		//a/b is from the equation of an elipse
-		//angle in degrees
+	void PIDMove(double Dtot, double Vf_at_end, double CoW, double acceleration, int timeout, double MaxVelocity);
+	void PIDTurn(double Vf_at_end, double CoW, double acceleration, int timeout, double MaxVelocity, double a_left, double b_left, double a_right, double b_right, int angle);
 	bool ASecond();
 	void Point(int angle, double sensitivity, double deadzone);
 	//sensitivity = how fast you want to turn. value in ticks 53 ticks = one degree
