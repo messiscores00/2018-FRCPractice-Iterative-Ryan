@@ -33,6 +33,10 @@ private:
 	int pidIdx = 0;
 	int sensorPos = 0;
 	int amps = 30;
+	int P;
+	int I;
+	int D;
+	int F;
 	int timeoutMs_ConfigPeakCurrentLimit = 0;
 	int timeoutMs_ConfigSelectedFeedbackSensor = 0;
 	int timeoutMs_SetSelectedSensorPosition = 0;

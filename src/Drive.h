@@ -31,14 +31,7 @@ public:
 	void ArcadeDrive(double deadzone, double xSpeed, double zRotation, bool squaredInputs);
 	//deadzone between 0 and 1.00
 	//sensitivity between 0 and 1.00
-	void PIDMove(double Dtot, double Vf_at_end, double CoW, double acceleration, int timeout, double sensitivity);
-		//U = initial velocity
-		//Dtot = total distance in inches
-		//Vf_at_end = final velocity in ft/sec
-		//CoW = circumference of Wheel in inches
-		//acceleration = max acceleration in ft/s^2
-		//timeout in milliseconds
-		//sensitivity is in feet per second
+	void PIDMove(double Dtot, double Vf_at_end, double CoW, double acceleration, int timeout);
 	void PIDTurn(double Vf_at_end, double CoW, double acceleration, int timeout, double sensitivity, double a_left, double b_left, double a_right, double b_right, int angle);
 		//a_left, b_left, a_right, b_right in inches
 		//a/b is from the equation of an elipse

@@ -43,7 +43,7 @@ void Robot::RobotInit() {
 
 	//invert encoders
 	drive.Left_Front.SetSensorPhase(true);
-	drive.Right_Back.SetSensorPhase(false);
+	drive.Right_Back.SetSensorPhase(true);
 
 	//invert motors
 	drive.Left_Front.SetInverted(false);
@@ -58,7 +58,7 @@ void Robot::RobotInit() {
 	drive.Right_Back.SetNeutralMode(ctre::phoenix::motorcontrol::NeutralMode::Brake);
 
 	//sets the PIDS
-	//drive.PIDenable(P, I, D, F);
+	drive.PIDenable(P, I, D, F);
 
 	//Sets the gyro
 	drive.gyro.Reset();
@@ -83,7 +83,14 @@ void Robot::AutonomousInit() {
 
 void Robot::AutonomousPeriodic() {
 	frc::DriverStation::ReportWarning("Encoder: " + std::to_string(drive.encoder()));
-	drive.PIDMove(120.0, 0, 18.85, 4.72, 25000000, 4.0);
+	frc::DriverStation::ReportWarning("EncoderLeft: " + std::to_string(drive.encoderLeft()));
+	frc::DriverStation::ReportWarning("EncoderRight: " + std::to_string(drive.encoderRight()));
+
+	drive.PIDMove(12.0, 0, 18.85, 4.72, 25000000);
+
+	frc::DriverStation::ReportWarning("Encoder: " + std::to_string(drive.encoder()));
+	frc::DriverStation::ReportWarning("EncoderLeft: " + std::to_string(drive.encoderLeft()));
+	frc::DriverStation::ReportWarning("EncoderRight: " + std::to_string(drive.encoderRight()));
 	//drive.PIDTurn(0.0, 18.85, 4.72, 2500, 4.0, 34, 34, 62, 62, 90);
 	//drive.Point(90 , .3, 10); DONE
 
@@ -95,7 +102,7 @@ void Robot::TeleopInit() {
 }
 
 void Robot::TeleopPeriodic() {
-	drive.ArcadeDrive(.02, drive.xbox1.GetY(frc::GenericHID::JoystickHand::kLeftHand), -1 * drive.xbox1.GetX(frc::GenericHID::JoystickHand::kLeftHand) , true);
+	drive.ArcadeDrive(.1, drive.xbox1.GetY(frc::GenericHID::JoystickHand::kLeftHand), -1 * drive.xbox1.GetX(frc::GenericHID::JoystickHand::kLeftHand) , true);
 }
 
 void Robot::TestPeriodic() {}

@@ -39,10 +39,9 @@ void Drive::ArcadeDrive(double deadzone, double xSpeed, double zRotation, bool s
 	double leftMotorOutput;
 	double rightMotorOutput;
 
-	if (fabs(xSpeed) <= deadzone)
+	if (fabs(xSpeed) <= deadzone){
 	    xSpeed = 0;
-	if (fabs(zRotation) <= deadzone)
-	    zRotation = 0;
+	}
 
 	if (squaredInputs) {
 	   xSpeed = std::copysign(xSpeed * xSpeed, xSpeed);
@@ -81,54 +80,58 @@ void Drive::ArcadeDrive(double deadzone, double xSpeed, double zRotation, bool s
 	   }
 	   Left_Front.Set(leftMotorOutput);
 	   Right_Front.Set(-rightMotorOutput);
+
+	   frc::DriverStation::ReportError("xSpeed: " + std::to_string(xSpeed));
+	   frc::DriverStation::ReportError("zRotation: " + std::to_string(zRotation));
 }
 
-void Drive::PIDMove(double Dtot, double Vf_at_end, double CoW, double Maxacceleration, int timeout, double sensitivity){
+void Drive::PIDMove(double Dtot, double Vf_at_end, double CoW, double acceleration, int timeout){
+	//Dtot = total distance in inches
+	//Vf_at_end = final velocity in ft/sec
+	//CoW = circumference of Wheel in inches
+	//acceleration = max deceleration in ft/s^2 note: do not make this negative
+	//timeout in milliseconds
+
 	//convert variables into ticks
-	Dtot = Dtot *(4096/CoW);
-	Maxacceleration = Maxacceleration * 12 * (4096/CoW);
+	Dtot = Dtot * (4096/CoW);
+	acceleration = acceleration * 12 * (4096/CoW);
 	Vf_at_end = Vf_at_end * 12 * (4096/CoW);
-	sensitivity = sensitivity * 12 * (4096/CoW);
 
 	//variables
 	double setpoint;
-	double lastime;
+	double lasttime;
 	double difference;
 	double s; //displacement
 	double start;
 
 	//set variables
 	start = encoder();
-	lastime = counter.GetFPGATimestamp();
+//	lasttime = counter.GetFPGATimestamp();
 
-	while(encoder() - start < Dtot && counter.GetFPGATimestamp()*1000 > timeout){
-		lastime = counter.GetFPGATimestamp();
-		if(Vp() == 0 && Vf_at_end == 0){
-			//accelerate{
-			difference = counter.GetFPGATimestamp() - lastime;
-			setpoint = encoder() + (Vp() + Maxacceleration*(difference)) * (difference);
-			Left_Front.Set(ctre::phoenix::motorcontrol::ControlMode::Position, setpoint);
-			Right_Front.Set(ctre::phoenix::motorcontrol::ControlMode::Position, setpoint);
-			//}
-		} else {
-		s = Vp()* (2.0 * Dtot/(Vp()+Vf_at_end)) + ((-Maxacceleration*2*std::pow(Dtot, 2.0))/Vp() + std::pow(Vf_at_end, 2.0));
+	while(encoder() - start < Dtot /*&& counter.GetFPGATimestamp()*1000 > timeout*/){
+		frc::DriverStation::ReportWarning("EncoderLeft: " + std::to_string(encoderLeft()));
+		frc::DriverStation::ReportWarning("EncoderRight: " + std::to_string(encoderRight()));
+		lasttime = counter.GetFPGATimestamp();
+		s = ((Vf_at_end * Vf_at_end) - (Vp() * Vp())/(2 * -acceleration));
 			if(s < Dtot - (encoder() - start)){
 				//accelerate {
-				difference = counter.GetFPGATimestamp() - lastime;
-				setpoint = encoder() + (Vp() + Maxacceleration*(difference)) * (difference);
-				Left_Front.Set(ctre::phoenix::motorcontrol::ControlMode::Position, setpoint);
+				//todo: if we reach MaxV then don't accelerate
+				frc::DriverStation::ReportWarning("accelerate ");
+				difference = counter.GetFPGATimestamp() - lasttime;
+				setpoint = encoder() + (Vp() + acceleration*(difference)) * (difference);
+				Left_Front.Set(ctre::phoenix::motorcontrol::ControlMode::Position, -setpoint);
 				Right_Front.Set(ctre::phoenix::motorcontrol::ControlMode::Position, setpoint);
 				//}
 			} else {
 				//decelerate {
-				difference = counter.GetFPGATimestamp() - lastime;
-				setpoint = encoder() + (Vp() - Maxacceleration*(difference)) * (difference);
-				Left_Front.Set(ctre::phoenix::motorcontrol::ControlMode::Position, setpoint);
+				frc::DriverStation::ReportWarning("decelerate ");
+				difference = counter.GetFPGATimestamp() - lasttime;
+				setpoint = encoder() + (Vp() - acceleration*(difference)) * (difference);
+				Left_Front.Set(ctre::phoenix::motorcontrol::ControlMode::Position, -setpoint);
 				Right_Front.Set(ctre::phoenix::motorcontrol::ControlMode::Position, setpoint);
 				//}
 			}
 		}
-	}
 }
 
 void Drive::PIDTurn(double Vf_at_end, double CoW, double Maxacceleration, int timeout, double sensitivity, double a_left, double b_left, double a_right, double b_right, int angle){
@@ -237,6 +240,7 @@ void Drive::Point(int angle, double sensitivity, double deadzone){
 
 //Getter function
 double Drive::encoder(){
+	//average encoder value
 	return (Left_Front.GetSelectedSensorPosition(0) + Right_Back.GetSelectedSensorPosition(0)) / 2;
 }
 
@@ -249,6 +253,7 @@ double Drive::encoderRight(){
 }
 
 double Drive::Vp(){
+	//average Present Velocity
 	return (Left_Front.GetSelectedSensorVelocity(0) + Right_Back.GetSelectedSensorVelocity(0)) / 2;
 }
 
