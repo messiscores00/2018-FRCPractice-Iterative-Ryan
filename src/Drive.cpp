@@ -80,9 +80,6 @@ void Drive::ArcadeDrive(double deadzone, double xSpeed, double zRotation, bool s
 	   }
 	   Left_Front.Set(leftMotorOutput);
 	   Right_Front.Set(-rightMotorOutput);
-
-	   frc::DriverStation::ReportError("xSpeed: " + std::to_string(xSpeed));
-	   frc::DriverStation::ReportError("zRotation: " + std::to_string(zRotation));
 }
 
 void Drive::PIDMove(double Dtot, double Vf_at_end, double CoW, double acceleration, int timeout){
@@ -91,6 +88,8 @@ void Drive::PIDMove(double Dtot, double Vf_at_end, double CoW, double accelerati
 	//CoW = circumference of Wheel in inches
 	//acceleration = max deceleration in ft/s^2 note: do not make this negative
 	//timeout in milliseconds
+
+
 
 	//convert variables into ticks
 	Dtot = Dtot * (4096/CoW);
@@ -106,17 +105,13 @@ void Drive::PIDMove(double Dtot, double Vf_at_end, double CoW, double accelerati
 
 	//set variables
 	start = encoder();
-//	lasttime = counter.GetFPGATimestamp();
 
 	while(encoder() - start < Dtot /*&& counter.GetFPGATimestamp()*1000 > timeout*/){
-		frc::DriverStation::ReportWarning("EncoderLeft: " + std::to_string(encoderLeft()));
-		frc::DriverStation::ReportWarning("EncoderRight: " + std::to_string(encoderRight()));
 		lasttime = counter.GetFPGATimestamp();
 		s = ((Vf_at_end * Vf_at_end) - (Vp() * Vp())/(2 * -acceleration));
 			if(s < Dtot - (encoder() - start)){
 				//accelerate {
 				//todo: if we reach MaxV then don't accelerate
-				frc::DriverStation::ReportWarning("accelerate ");
 				difference = counter.GetFPGATimestamp() - lasttime;
 				setpoint = encoder() + (Vp() + acceleration*(difference)) * (difference);
 				Left_Front.Set(ctre::phoenix::motorcontrol::ControlMode::Position, -setpoint);
@@ -124,7 +119,6 @@ void Drive::PIDMove(double Dtot, double Vf_at_end, double CoW, double accelerati
 				//}
 			} else {
 				//decelerate {
-				frc::DriverStation::ReportWarning("decelerate ");
 				difference = counter.GetFPGATimestamp() - lasttime;
 				setpoint = encoder() + (Vp() - acceleration*(difference)) * (difference);
 				Left_Front.Set(ctre::phoenix::motorcontrol::ControlMode::Position, -setpoint);
