@@ -35,7 +35,7 @@ void Drive::PIDdisable(){
 	Right_Front.ctre::phoenix::motorcontrol::can::WPI_TalonSRX::Config_kF(0, 0, 0);
 }
 
-void Drive::ArcadeDrive(double deadzone, double xSpeed, double zRotation, bool squaredInputs, double sensitivity){
+void Drive::ArcadeDrive(double deadzone, double xSpeed, double zRotation, bool squaredInputs, double Leftsensitivity, double Rightsensitivity){
 	//deadzone is from 1 to 0 where 1 = 100%
 	//xSpeed is the Y axis on the controller. note: it is called xSpeed because the robot wheels rotates on the x axis
 	//zRotation is the x axis on the controller. note: it is called zRotation because the robot pivots on the z axis
@@ -80,8 +80,8 @@ void Drive::ArcadeDrive(double deadzone, double xSpeed, double zRotation, bool s
 	       rightMotorOutput = xSpeed - zRotation;
 	    }
 	}
-	Left_Front.Set(leftMotorOutput * sensitivity);
-	Right_Front.Set(-rightMotorOutput * sensitivity);
+	Left_Front.Set(leftMotorOutput * Leftsensitivity);
+	Right_Back.Set(-rightMotorOutput * Rightsensitivity);
 }
 
 void Drive::PIDMove(double Dtot, double Vf_at_end, double CoW, double acceleration, int timeout, double MaxVelocity){
@@ -100,36 +100,49 @@ void Drive::PIDMove(double Dtot, double Vf_at_end, double CoW, double accelerati
 	Vf_at_end = Vf_at_end * 12 * ticksPERin;
 	MaxVelocity = MaxVelocity * 12 * ticksPERin;
 
+	//zero the encoders
+	PIDdisable();
+	Left_Front.SetSelectedSensorPosition(0, 0, 0);
+	Right_Back.SetSelectedSensorPosition(0, 0, 0);
+	Left_Front.Set(ctre::phoenix::motorcontrol::ControlMode::Position, 0);
+	Right_Back.Set(ctre::phoenix::motorcontrol::ControlMode::Position, 0);
+	PIDenable(P,I,D,F);
+
 	//variables
-	double setpoint = encoder();
+	double setpoint;
 	double lasttime;
 	double difference;
 	double s; //displacement
-	double start;
 
 	//set variables
-	start = encoder();
+	setpoint = 0;
 
-	while(encoder() - start < Dtot /*&& counter.GetFPGATimestamp()*1000 > timeout*/){
+	while(setpoint < Dtot /*&& counter.GetFPGATimestamp()*1000 > timeout*/){
 		lasttime = counter.GetFPGATimestamp();
 		s = ((Vf_at_end * Vf_at_end) - (Vp() * Vp())/(2 * -acceleration));
-		if(s < Dtot - (encoder() - start)){
+		if(s < Dtot - setpoint){
 			//accelerate {
 			difference = counter.GetFPGATimestamp() - lasttime;
 			if(MaxVelocity <= Vp()){
-				setpoint = encoder() + (Vp() * difference);
+				setpoint += Vp() * difference;
 			}else{
-				setpoint = encoder() + (Vp() + acceleration*(difference)) * (difference);
+				setpoint += Vp() + acceleration*(difference) * difference;
 			}
-			Left_Front.Set(ctre::phoenix::motorcontrol::ControlMode::Position, setpoint);
-			Right_Back.Set(ctre::phoenix::motorcontrol::ControlMode::Position, setpoint);
+			if(setpoint > Dtot){
+				setpoint = Dtot;
+			}
+			Left_Front.Set(ctre::phoenix::motorcontrol::ControlMode::Position, std::copysign(setpoint, Dtot) * -1);
+			Right_Back.Set(ctre::phoenix::motorcontrol::ControlMode::Position, std::copysign(setpoint, Dtot));
 			//}
 		} else {
 			//decelerate {
 			difference = counter.GetFPGATimestamp() - lasttime;
-			setpoint = encoder() + (Vp() - acceleration*(difference)) * (difference);
-			Left_Front.Set(ctre::phoenix::motorcontrol::ControlMode::Position, setpoint);
-			Right_Back.Set(ctre::phoenix::motorcontrol::ControlMode::Position, setpoint);
+			setpoint += Vp() - acceleration*(difference) * difference;
+			if(setpoint > Dtot){
+				setpoint = Dtot;
+			}
+			Left_Front.Set(ctre::phoenix::motorcontrol::ControlMode::Position, std::copysign(setpoint, Dtot) * -1);
+			Right_Back.Set(ctre::phoenix::motorcontrol::ControlMode::Position, std::copysign(setpoint, Dtot));
 			//}
 		}
 	}

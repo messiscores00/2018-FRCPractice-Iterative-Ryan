@@ -43,7 +43,7 @@ void Robot::RobotInit() {
 
 	//invert encoders
 	drive.Left_Front.SetSensorPhase(false);
-	drive.Right_Back.SetSensorPhase(true);
+	drive.Right_Back.SetSensorPhase(false);
 
 	//invert motors
 	drive.Left_Front.SetInverted(false);
@@ -58,7 +58,7 @@ void Robot::RobotInit() {
 	drive.Right_Back.SetNeutralMode(ctre::phoenix::motorcontrol::NeutralMode::Brake);
 
 	//sets the PIDS
-	drive.PIDenable(P, I, D, F);
+	drive.PIDenable(drive.P, drive.I, drive.D, drive.F);
 
 	//Sets the gyro
 	drive.gyro.Reset();
@@ -78,8 +78,8 @@ void Robot::RobotInit() {
 
 void Robot::AutonomousInit() {
 	frc::DriverStation::ReportWarning("Encoder: " + std::to_string(drive.encoder()));
-	//drive.Left_Front.Set(ctre::phoenix::motorcontrol::ControlMode::Position, 8192);
-	//drive.Right_Front.Set(ctre::phoenix::motorcontrol::ControlMode::Position,  8192);
+	//drive.Left_Front.Set(ctre::phoenix::motorcontrol::ControlMode::Position, -8192);
+	//drive.Right_Back.Set(ctre::phoenix::motorcontrol::ControlMode::Position,  8192);
 	drive.PIDMove(37.7, 0, 18.85, 4, 10000000, 20000);
 	//drive.PIDTurn(0.0, 18.85, 4.72, 2500, 4.0, 34, 34, 62, 62, 90);
 	//drive.Point(90 , .3, 10);
@@ -89,24 +89,25 @@ void Robot::AutonomousPeriodic() {
 }
 
 void Robot::TeleopInit() {
+	drive.Right_Back.Set(ctre::phoenix::motorcontrol::ControlMode::PercentOutput, 0);
 	frc::DriverStation::ReportWarning("StartTel");
-	RB_pressed = false;
+	pressed = false;
 	drive.xbox1.SetYChannel(1);
 	drive.xbox1.SetXChannel(4);
 }
 
 void Robot::TeleopPeriodic() {
-	if(drive.xbox1.GetRawButtonReleased(4) == true && RB_pressed == false){
-		RB_pressed = true;
-	} else if(drive.xbox1.GetRawButtonReleased(3) == true && RB_pressed == true){
-		RB_pressed = false;
+	if(drive.xbox1.GetRawButtonReleased(4) == true && pressed == false){
+		pressed = true;
+	} else if(drive.xbox1.GetRawButtonReleased(3) == true && pressed == true){
+		pressed = false;
 	}
-	if(RB_pressed == true){
+	if(pressed == true){
 		frc::DriverStation::ReportWarning("true");
-		drive.ArcadeDrive(.1, drive.xbox1.GetY(frc::GenericHID::JoystickHand::kLeftHand), -1 * drive.xbox1.GetX(frc::GenericHID::JoystickHand::kLeftHand) , true, .4);
+		drive.ArcadeDrive(.1, drive.xbox1.GetY(frc::GenericHID::JoystickHand::kLeftHand), -1 * drive.xbox1.GetX(frc::GenericHID::JoystickHand::kLeftHand) , true, .4,.8 );
 	}else{
 		frc::DriverStation::ReportWarning("false");
-		drive.ArcadeDrive(.1, drive.xbox1.GetY(frc::GenericHID::JoystickHand::kLeftHand), -1 * drive.xbox1.GetX(frc::GenericHID::JoystickHand::kLeftHand) , true, 1);
+		drive.ArcadeDrive(.1, drive.xbox1.GetY(frc::GenericHID::JoystickHand::kLeftHand), -1 * drive.xbox1.GetX(frc::GenericHID::JoystickHand::kLeftHand) , true, .7, 1);
 	}
 }
 

@@ -28,7 +28,7 @@ public:
 	virtual ~Drive();
 	void PIDenable(int P, int I, int D, int F);
 	void PIDdisable();
-	void ArcadeDrive(double deadzone, double xSpeed, double zRotation, bool squaredInputs, double sensitivity);
+	void ArcadeDrive(double deadzone, double xSpeed, double zRotation, bool squaredInputs, double Leftsensitivity, double Rightsensitivity);
 	//deadzone between 0 and 1.00
 	//sensitivity between 0 and 1.00
 	void PIDMove(double Dtot, double Vf_at_end, double CoW, double acceleration, int timeout, double MaxVelocity);
@@ -50,6 +50,10 @@ public:
 	int Right_FrontID = 4;
 	int Left_BackID = 2;
 	int Right_BackID = 5;
+	int P = 1;
+	int I = 0;
+	int D = 10;
+	int F = 0;
 
 	//objects
 	ctre::phoenix::motorcontrol::can::WPI_TalonSRX Left_Front{Left_FrontID};
