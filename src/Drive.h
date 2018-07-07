@@ -54,6 +54,7 @@ public:
 	int I = 0;
 	int D = 10;
 	int F = 0;
+	double VelocityPresent = 0.0;
 
 	//objects
 	ctre::phoenix::motorcontrol::can::WPI_TalonSRX Left_Front{Left_FrontID};

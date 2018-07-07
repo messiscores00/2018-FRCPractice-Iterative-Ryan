@@ -71,7 +71,7 @@ void Robot::RobotInit() {
 
 
 	//reports
-	frc::DriverStation::ReportWarning("Encoder: " + std::to_string(drive.encoder()));
+	//frc::DriverStation::ReportWarning("Encoder: " + std::to_string(drive.encoder()));
 	//frc::DriverStation::ReportWarning("Gyro: " +  std::to_string(drive.gyro.GetAngle()));
 
 }
@@ -80,7 +80,7 @@ void Robot::AutonomousInit() {
 	frc::DriverStation::ReportWarning("Encoder: " + std::to_string(drive.encoder()));
 	//drive.Left_Front.Set(ctre::phoenix::motorcontrol::ControlMode::Position, -8192);
 	//drive.Right_Back.Set(ctre::phoenix::motorcontrol::ControlMode::Position,  8192);
-	drive.PIDMove(37.7, 0, 18.85, 4, 10000000, 20000);
+	drive.PIDMove(120, 0, 18.85, 40, 10000000, 20000);
 	//drive.PIDTurn(0.0, 18.85, 4.72, 2500, 4.0, 34, 34, 62, 62, 90);
 	//drive.Point(90 , .3, 10);
 }
@@ -90,7 +90,7 @@ void Robot::AutonomousPeriodic() {
 
 void Robot::TeleopInit() {
 	drive.Right_Back.Set(ctre::phoenix::motorcontrol::ControlMode::PercentOutput, 0);
-	frc::DriverStation::ReportWarning("StartTel");
+	//frc::DriverStation::ReportWarning("StartTel");
 	pressed = false;
 	drive.xbox1.SetYChannel(1);
 	drive.xbox1.SetXChannel(4);

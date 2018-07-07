@@ -111,36 +111,51 @@ void Drive::PIDMove(double Dtot, double Vf_at_end, double CoW, double accelerati
 	//variables
 	double setpoint;
 	double lasttime;
+	double curtime;
 	double difference;
 	double s; //displacement
 
 	//set variables
 	setpoint = 0;
+	lasttime = counter.GetFPGATimestamp();
 
 	while(setpoint < Dtot /*&& counter.GetFPGATimestamp()*1000 > timeout*/){
-		lasttime = counter.GetFPGATimestamp();
-		s = ((Vf_at_end * Vf_at_end) - (Vp() * Vp())/(2 * -acceleration));
+		s = ((Vf_at_end * Vf_at_end) - (VelocityPresent * VelocityPresent))/(2 * -acceleration);
 		if(s < Dtot - setpoint){
 			//accelerate {
-			difference = counter.GetFPGATimestamp() - lasttime;
-			if(MaxVelocity <= Vp()){
-				setpoint += Vp() * difference;
+			curtime = counter.GetFPGATimestamp();
+			difference =  curtime - lasttime;
+			lasttime = curtime;
+			if(MaxVelocity <= VelocityPresent){
+				setpoint += VelocityPresent * difference;
 			}else{
-				setpoint += Vp() + acceleration*(difference) * difference;
+				VelocityPresent += acceleration * difference;
+				setpoint += VelocityPresent * difference;
 			}
 			if(setpoint > Dtot){
 				setpoint = Dtot;
 			}
+
+			frc::DriverStation::ReportWarning("encoderLeft: " + std::to_string(encoderLeft()));
+			frc::DriverStation::ReportWarning("encoderRight: " + std::to_string(encoderRight()));
+
 			Left_Front.Set(ctre::phoenix::motorcontrol::ControlMode::Position, std::copysign(setpoint, Dtot) * -1);
 			Right_Back.Set(ctre::phoenix::motorcontrol::ControlMode::Position, std::copysign(setpoint, Dtot));
 			//}
 		} else {
 			//decelerate {
-			difference = counter.GetFPGATimestamp() - lasttime;
-			setpoint += Vp() - acceleration*(difference) * difference;
+			curtime = counter.GetFPGATimestamp();
+			difference =  curtime - lasttime;
+			lasttime = curtime;
+			VelocityPresent -= acceleration* difference;
+			setpoint += VelocityPresent * difference;
 			if(setpoint > Dtot){
 				setpoint = Dtot;
 			}
+
+			frc::DriverStation::ReportWarning("encoderLeft: " + std::to_string(encoderLeft()));
+			frc::DriverStation::ReportWarning("encoderRight: " + std::to_string(encoderRight()));
+
 			Left_Front.Set(ctre::phoenix::motorcontrol::ControlMode::Position, std::copysign(setpoint, Dtot) * -1);
 			Right_Back.Set(ctre::phoenix::motorcontrol::ControlMode::Position, std::copysign(setpoint, Dtot));
 			//}
@@ -149,6 +164,7 @@ void Drive::PIDMove(double Dtot, double Vf_at_end, double CoW, double accelerati
 }
 
 void Drive::PIDTurn(double Vf_at_end, double CoW, double acceleration, int timeout,double MaxVelocity, double a_left, double b_left, double a_right, double b_right, int angle){
+/*
 	//a_left, b_left, a_right, b_right in inches
 	//a/b is from the equation of an elipse
 	//angle in degrees
@@ -258,6 +274,8 @@ void Drive::PIDTurn(double Vf_at_end, double CoW, double acceleration, int timeo
 	double temp_encoder = encoder();
 	Left_Front.SetSelectedSensorPosition(temp_encoder,0,0);
 	Right_Back.SetSelectedSensorPosition(temp_encoder,0,0);
+
+*/
 }
 
 void Drive::Point(int angle, double sensitivity, double deadzone){
@@ -285,15 +303,3 @@ double Drive::encoderRight(){
 	return Right_Back.GetSelectedSensorPosition(0);
 }
 
-double Drive::Vp(){
-	//average Present Velocity
-	return (Left_Front.GetSelectedSensorVelocity(0) + Right_Back.GetSelectedSensorVelocity(0)) / 2;
-}
-
-double Drive::VpLeft(){
-	return Left_Front.GetSelectedSensorVelocity(0);
-}
-
-double Drive::VpRight(){
-	return Right_Back.GetSelectedSensorVelocity(0);
-}
