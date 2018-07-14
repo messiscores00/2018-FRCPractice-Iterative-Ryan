@@ -32,7 +32,7 @@ public:
 	//deadzone between 0 and 1.00
 	//sensitivity between 0 and 1.00
 	void PIDMove(double Dtot, double Vf_at_end, double CoW, double acceleration, int timeout, double MaxVelocity);
-	void PIDTurn(double Vf_at_end, double CoW, double acceleration, int timeout, double MaxVelocity, double a_left, double b_left, double a_right, double b_right, int angle);
+	void PIDTurn(double Vf_at_end, double CoW, double accelerationLeft, double  accelerationRight, int timeout, double MaxVelocity, double a_left, double b_left, double a_right, double b_right, double angle);
 	bool ASecond();
 	void Point(int angle, double sensitivity, double deadzone);
 	//sensitivity = how fast you want to turn. value in ticks 53 ticks = one degree

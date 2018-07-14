@@ -21,11 +21,11 @@
 void Robot::RobotInit() {
 	//set motors to follower mode
 	drive.Left_Back.Set(ctre::phoenix::motorcontrol::ControlMode::Follower, drive.Left_FrontID);
-	drive.Right_Back.Set(ctre::phoenix::motorcontrol::ControlMode::Follower, drive.Right_FrontID);
+	drive.Right_Front.Set(ctre::phoenix::motorcontrol::ControlMode::Follower, drive.Right_BackID);
 
 	//select primary closed loop
     drive.Left_Front.SelectProfileSlot(slotIdx, pidIdx);
-    drive.Right_Front.SelectProfileSlot(slotIdx, pidIdx);
+    drive.Right_Back.SelectProfileSlot(slotIdx, pidIdx);
 
     //set the peak current to 30 amps because we have 30 amp breakers
     drive.Left_Front.ConfigPeakCurrentLimit(amps, timeoutMs_ConfigPeakCurrentLimit);
@@ -78,7 +78,8 @@ void Robot::RobotInit() {
 
 void Robot::AutonomousInit() {
 	frc::DriverStation::ReportWarning("Encoder: " + std::to_string(drive.encoder()));
-	drive.PIDMove(120, 0, 18.85, 40, 10000000, 20000);
+	drive.PIDMove(120, 0, 18.85, 10, 10000000, 20000);
+	drive.PIDTurn(0, 18.85, 5, 7, 10000000, 20000, 84, 84, 108, 108, 90);
 }
 
 void Robot::AutonomousPeriodic() {
