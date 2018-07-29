@@ -78,8 +78,8 @@ void Robot::RobotInit() {
 
 void Robot::AutonomousInit() {
 	frc::DriverStation::ReportWarning("Encoder: " + std::to_string(drive.encoder()));
-	drive.PIDMove(120, 0, 18.85, 10, 10000000, 20000);
-	drive.PIDTurn(0, 18.85, 5, 7, 10000000, 20000, 84, 84, 108, 108, 90);
+	drive.PIDMove(120, 0, 18.85, 2.3, 10000000, 20000);
+	//drive.PIDTurn(0, 18.85, 5, 7, 10000000, 20000, 84, 84, 108, 108, 90);
 }
 
 void Robot::AutonomousPeriodic() {

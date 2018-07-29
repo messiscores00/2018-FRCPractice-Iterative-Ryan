@@ -120,7 +120,7 @@ void Drive::PIDMove(double Dtot, double Vf_at_end, double CoW, double accelerati
 
 	while(setpoint < Dtot && counter.GetFPGATimestamp()*1000 < timeout){
 
-		s = ((Vf_at_end * Vf_at_end) - (VelocityPresent * VelocityPresent))/(2 * -acceleration);
+		s = (((Vf_at_end - VelocityPresent) * (Vf_at_end - VelocityPresent))/ -2 * acceleration) * ((VelocityPresent * (Vf_at_end - VelocityPresent))/-acceleration);
 
 		//timing
 		curtime = counter.GetFPGATimestamp();
@@ -140,9 +140,9 @@ void Drive::PIDMove(double Dtot, double Vf_at_end, double CoW, double accelerati
 				setpoint = Dtot;
 			}
 
-			//frc::DriverStation::ReportWarning("encoderLeft: " + std::to_string(encoderLeft()));
-			//frc::DriverStation::ReportWarning("encoderRight: " + std::to_string(encoderRight()));
-			//frc::DriverStation::ReportWarning("setpoint: " + std::to_string(std::copysign(setpoint, Dtot)));
+			frc::DriverStation::ReportWarning("encoderLeft: " + std::to_string(encoderLeft()));
+			frc::DriverStation::ReportWarning("encoderRight: " + std::to_string(encoderRight()));
+			frc::DriverStation::ReportWarning("setpoint: " + std::to_string(std::copysign(setpoint, Dtot)));
 
 			Left_Front.Set(ctre::phoenix::motorcontrol::ControlMode::Position, std::copysign(setpoint, Dtot) * -1);
 			Right_Back.Set(ctre::phoenix::motorcontrol::ControlMode::Position, std::copysign(setpoint, Dtot));
@@ -213,8 +213,8 @@ void Drive::PIDTurn(double Vf_at_end, double CoW, double accelerationLeft, doubl
 
 		while(setpointLeft < ArkLeng_left && /*setpointRight < ArkLeng_right &&*/ counter.GetFPGATimestamp()*1000 < timeout){
 
-			Sleft = ((Vf_at_end * Vf_at_end) - (VelocityPresentLeft * VelocityPresentLeft))/(2 * -accelerationLeft);
-			Sright = ((Vf_at_end * Vf_at_end) - (VelocityPresentRight * VelocityPresentRight))/(2 * -accelerationRight);
+			Sleft = ((pow(VelocityPresentLeft - Vf_at_end, 2))/ -2 * accelerationLeft) * ((VelocityPresentLeft * (VelocityPresentLeft - Vf_at_end))/accelerationLeft);
+			Sright = ((pow(VelocityPresentRight - Vf_at_end, 2))/ -2 * accelerationRight) * ((VelocityPresentRight * (VelocityPresentRight - Vf_at_end))/accelerationRight);
 
 			//timing
 			curtime = counter.GetFPGATimestamp();

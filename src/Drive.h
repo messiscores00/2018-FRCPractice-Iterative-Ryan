@@ -52,7 +52,7 @@ public:
 	int Right_BackID = 5;
 	int P = 1;
 	int I = 0;
-	int D = 10;
+	int D = 8;
 	int F = 0;
 
 	//objects
