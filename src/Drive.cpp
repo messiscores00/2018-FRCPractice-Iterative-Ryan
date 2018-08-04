@@ -35,6 +35,12 @@ void Drive::PIDdisable(){
 	Right_Back.ctre::phoenix::motorcontrol::can::WPI_TalonSRX::Config_kF(0, 0, 0);
 }
 //----------------------------------------------------------------------------------------------
+void Drive::DogShifting(double GearBox1, double GearBox2, double deadzone, double xSpeed, double zRotation, bool squaredInputs, double Leftsensitivity, double Rightsensitivity){
+	Drive::ArcadeDrive(deadzone, xSpeed, zRotation, squaredInputs, Leftsensitivity, Rightsensitivity);
+
+
+}
+//----------------------------------------------------------------------------------------------
 void Drive::ArcadeDrive(double deadzone, double xSpeed, double zRotation, bool squaredInputs, double Leftsensitivity, double Rightsensitivity){
 	//deadzone is from 1 to 0 where 1 = 100%
 	//xSpeed is the Y axis on the controller. note: it is called xSpeed because the robot wheels rotates on the x axis
@@ -213,8 +219,8 @@ void Drive::PIDTurn(double Vf_at_end, double CoW, double accelerationLeft, doubl
 
 		while(setpointLeft < ArkLeng_left && /*setpointRight < ArkLeng_right &&*/ counter.GetFPGATimestamp()*1000 < timeout){
 
-			Sleft = ((pow(VelocityPresentLeft - Vf_at_end, 2))/ -2 * accelerationLeft) * ((VelocityPresentLeft * (VelocityPresentLeft - Vf_at_end))/accelerationLeft);
-			Sright = ((pow(VelocityPresentRight - Vf_at_end, 2))/ -2 * accelerationRight) * ((VelocityPresentRight * (VelocityPresentRight - Vf_at_end))/accelerationRight);
+			Sleft = (((Vf_at_end - VelocityPresentLeft) * (Vf_at_end - VelocityPresentLeft))/ -2 * accelerationLeft) * ((VelocityPresentLeft * (Vf_at_end - VelocityPresentLeft))/-accelerationLeft);
+			Sright = (((Vf_at_end - VelocityPresentRight) * (Vf_at_end - VelocityPresentRight))/ -2 * accelerationRight) * ((VelocityPresentRight * (Vf_at_end - VelocityPresentRight))/-accelerationRight);
 
 			//timing
 			curtime = counter.GetFPGATimestamp();

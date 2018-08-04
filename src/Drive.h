@@ -20,6 +20,7 @@
 #include <AnalogGyro.h>
 #include <Timer.h>
 #include <AHRS.h>
+#include <Solenoid.h>
 
 class Drive {
 public:
@@ -38,6 +39,7 @@ public:
 	//sensitivity = how fast you want to turn. value in ticks 53 ticks = one degree
 	//deadzone in degrees of deadzone
 	//angle left is negative right is positive
+	void DogShifting(double GearBox1, double GearBox2, double deadzone, double xSpeed, double zRotation, bool squaredInputs, double Leftsensitivity, double Rightsensitivity);
 	double encoder();
 	double encoderLeft();
 	double encoderRight();
@@ -63,6 +65,7 @@ public:
 	frc::Joystick xbox1{0};
 	frc::Timer counter{};
 	AHRS gyro{frc::SPI::Port::kMXP};
+	frc::Solenoid Solenoid{0};
 
 };
 
